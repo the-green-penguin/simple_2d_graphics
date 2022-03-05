@@ -35,29 +35,27 @@ SOFTWARE.
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "data.h"
+#include "shader_program.h"
 
 
 
 // .cpp contains non-member function!
-class Gr_Window{
+class Window{
 public:
-  Gr_Window(const std::string& window_name, Gr_Data::setup_type);
-  ~Gr_Window();
+  Window(const std::string& window_name);
+  ~Window();
   void run();
-  ///void set_fps(int fps);
   
 private:
   GLFWwindow* window;
   std::string window_name;
-  ///int fps;
-  std::unique_ptr<Gr_Data> data;
   int width, height;
+  std::unique_ptr<Shader_Program> shader_program;
   
   void test();
   void setup_glfw();
   void setup_glew();
   void setup_glfw_debugging();
+  void setup_shader_program();
   void render();
-  ///void wait();
 };

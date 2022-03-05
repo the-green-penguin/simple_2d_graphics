@@ -28,6 +28,8 @@ SOFTWARE.
 #include "window.h"
 
 #include <iostream>
+#include <string>
+#include <exception>
 
 #include <glm/glm.hpp>   // sudo apt install libglm-dev
 #include <glm/gtc/matrix_transform.hpp>
@@ -45,24 +47,25 @@ void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum 
 // public
 ////////////////////////////////////////////////////////////////////////////////
 
-Gr_Window::Gr_Window(const std::string& window_name, Gr_Data::setup_type setup_type){
+Window::Window(const std::string& window_name){
   this->window_name = window_name;
-  setup_glfw();
-  setup_glew();
-  setup_glfw_debugging();
   
-  // OpenGL preparation
-  switch(setup_type){
-    case Gr_Data::test:   data = std::make_unique<Gr_Data_Test>(); break;
-    case Gr_Data::trans:  data = std::make_unique<Gr_Data_Trans>(); break;
-    default:              throw std::runtime_error("Failed to initialize graphics data!");
+  try{
+    setup_glfw();
+    setup_glew();
+    setup_glfw_debugging();
+    setup_shader_program();
+  }
+  catch(std::exception &e){
+    std::string error_message = "Error: Unable to open new window!\n\nCaused by exception:\n";
+    throw std::runtime_error(error_message + e.what());
   }
 }
 
 
 
 //------------------------------------------------------------------------------
-Gr_Window::~Gr_Window(){
+Window::~Window(){
   glfwDestroyWindow(window);
   glfwTerminate();
 }
@@ -70,21 +73,12 @@ Gr_Window::~Gr_Window(){
 
 
 //------------------------------------------------------------------------------
-void Gr_Window::run(){  
-  // game (render) loop
+void Window::run(){   // run as separate thread
   while(!glfwWindowShouldClose(window)){  //"...ShouldClose()" requires "...PollEvents()"!
-    render();
-    ///wait();    
+    render();   
     glfwPollEvents();
   }
-  
-  std::cout << "Gr_Window: stop\n";
 }
-
-
-
-//------------------------------------------------------------------------------
-///void Gr_Window::set_fps(int fps){  this->fps = fps;  }
 
 
 
@@ -92,7 +86,7 @@ void Gr_Window::run(){
 // private
 ////////////////////////////////////////////////////////////////////////////////
 
-void Gr_Window::setup_glfw(){
+void Window::setup_glfw(){
   if(!glfwInit())
     throw std::runtime_error("GLFW initialization failed!");
   
@@ -110,13 +104,12 @@ void Gr_Window::setup_glfw(){
     
   glfwMakeContextCurrent(window);
   glfwSetErrorCallback(glfw_error);
-  ///glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 }
 
 
 
 //------------------------------------------------------------------------------
-void Gr_Window::setup_glew(){
+void Window::setup_glew(){
   GLenum err = glewInit();   // needs to be called after context is created!
   if (err != GLEW_OK){
     std::cerr << "glewInit() returned: '" << glewGetErrorString(err) << "'\n";
@@ -127,7 +120,7 @@ void Gr_Window::setup_glew(){
 
 
 //------------------------------------------------------------------------------
-void Gr_Window::setup_glfw_debugging(){
+void Window::setup_glfw_debugging(){
   int flags;
   glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
   if(flags & GL_CONTEXT_FLAG_DEBUG_BIT){   // check if debug flag was set -> configure debugging
@@ -141,7 +134,16 @@ void Gr_Window::setup_glfw_debugging(){
 
 
 //------------------------------------------------------------------------------
-void Gr_Window::render(){
+void Window::setup_shader_program(){
+  std::vector<std::string> shader_sources = {"src/shaders/simple_2d.frag", "src/shaders/simple_2d.vert"};
+  this->shader_program = std::make_unique<Shader_Program>(shader_sources);
+  shader_program->use();
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::render(){
   // window size
   glfwGetFramebufferSize(window, &width, &height);
   glViewport(0, 0, width, height);
@@ -151,19 +153,14 @@ void Gr_Window::render(){
   glClear(GL_COLOR_BUFFER_BIT);
   
   // update the uniform color
-  data->update_content(width, height);
+  ///data->update_content(width, height);
   
   // draw objects
-  data->draw_content();
+  ///data->draw_content();
   
   // show content
   glfwSwapBuffers(window);
 }
-
-
-
-//------------------------------------------------------------------------------
-///void Gr_Window::wait(){}
 
 
 
@@ -177,13 +174,6 @@ void glfw_error(int error, const char* description){
   message += description;
   throw std::runtime_error(message);
 }
-
-
-
-//------------------------------------------------------------------------------
-///void framebuffer_size_callback(GLFWwindow* window, int width, int height){
-///  glViewport(0, 0, width, height);
-///}
 
 
 

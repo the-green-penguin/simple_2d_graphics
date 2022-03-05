@@ -26,11 +26,13 @@ SOFTWARE.
 
 #include <iostream>
 
+#include "../window.h"
+
 
 
 int main(int argc, char* argv[]){
 	
-	
+	Window window("Test");
 	
 	return 0;
 }
