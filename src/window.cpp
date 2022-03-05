@@ -82,6 +82,13 @@ void Window::run(){   // run as separate thread
 
 
 
+//------------------------------------------------------------------------------
+void Window::add_gobject(const std::shared_ptr<GObject>& gobject){
+  graphics_objects.push_back(gobject);
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // private
 ////////////////////////////////////////////////////////////////////////////////
@@ -152,11 +159,26 @@ void Window::render(){
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
   
-  // update the uniform color
-  ///data->update_content(width, height);
+  // test
+  glm::mat4 model = glm::mat4(1.0f);   // identity matrix
+  glm::mat4 view = glm::mat4(1.0f);
+  glm::mat4 projection = glm::mat4(1.0f);
   
-  // draw objects
-  ///data->draw_content();
+  float time = glfwGetTime();
+  model = glm::rotate(model, time, glm::vec3(0.0f, 0.0f, 1.0f));   // "rotate by time" around z = (0, 0, 1) axis
+  
+  view = glm::translate(view, glm::vec3(200.0f, 200.0f, 0.0f));   // triangle moved to bottom right
+  
+  projection = glm::ortho(0.0f, (float)width, (float)height, 0.0f, -1.0f, 1.0f);
+  
+  // apply transformation
+  shader_program->set_uni("model", model);
+  shader_program->set_uni("view", view);
+  shader_program->set_uni("projection", projection);
+  
+  // render objects
+  for(auto &obj : graphics_objects)
+    obj->render();
   
   // show content
   glfwSwapBuffers(window);

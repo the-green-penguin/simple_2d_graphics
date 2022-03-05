@@ -27,8 +27,6 @@ SOFTWARE.
 
 #pragma once
 
-#include <string>
-#include <memory>
 #include <vector>
 
 ///#define GLFW_INCLUDE_NONE     // not needed/working on Ubuntu, etc.
@@ -36,32 +34,57 @@ SOFTWARE.
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "shader_program.h"
-#include "graphics_object.h"
+#include <glm/glm.hpp>   // sudo apt install libglm-dev
 
 
 
-// .cpp contains non-member function!
-class Window{
+struct Vertex{
+  glm::vec3 position;
+  glm::vec3 colour;
+};
+
+
+
+//------------------------------------------------------------------------------
+class GObject{
 public:
-  Window(const std::string& window_name);
-  ~Window();
-  void run();   // run as separate thread
-  void add_gobject(const std::shared_ptr<GObject>& gobject);
+  GObject(glm::vec3 position);
+  ~GObject();
+  virtual void render() = 0;
   
-private:
-  GLFWwindow* window;
-  std::string window_name;
-  int width, height;
-  std::unique_ptr<Shader_Program> shader_program;
-  std::vector<
-    std::shared_ptr<GObject>
-  > graphics_objects;
+protected:
+  glm::vec3 position;
+};
+
+
+
+//------------------------------------------------------------------------------
+class GShape: public GObject{
+public:
+  GShape(
+    glm::vec3 position,
+    const std::vector<Vertex>& vertices
+  );
+  ~GShape();
+  virtual void render();
   
-  void test();
-  void setup_glfw();
-  void setup_glew();
-  void setup_glfw_debugging();
-  void setup_shader_program();
-  void render();
+protected:
+  GLuint vertex_buffer, vertex_array_object;
+  std::size_t index_count;
+  
+  void setup_vertex_buffer(const std::vector<Vertex>& vertices);
+};
+
+
+
+//------------------------------------------------------------------------------
+class GTriangle: public GShape{
+public:
+  GTriangle(
+    glm::vec3 position,
+    const std::vector<Vertex>& vertices
+  );
+  ~GTriangle();
+  
+protected:
 };
