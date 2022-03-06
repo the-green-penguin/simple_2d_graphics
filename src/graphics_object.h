@@ -84,6 +84,11 @@ public:
     glm::vec3 position,
     const std::vector<Vertex>& vertices
   );
+  GTriangle(
+    glm::vec3 position,
+    float size,
+    glm::vec3 colour
+  );
   ~GTriangle();
   
 protected:

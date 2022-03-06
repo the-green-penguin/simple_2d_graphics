@@ -28,6 +28,8 @@ SOFTWARE.
 #include "graphics_object.h"
 
 #include <iostream>
+#include <exception>
+#include <math.h>
 
 
 
@@ -60,7 +62,8 @@ GShape::GShape(glm::vec3 position, const std::vector<Vertex>& vertices)
   : GObject(position){   // pass argument to base constructor
     
     index_count = vertices.size();
-    setup_vertex_buffer(vertices);
+    if(vertices.size() != 0)
+      setup_vertex_buffer(vertices);
 }
 
 
@@ -84,9 +87,9 @@ void GShape::setup_vertex_buffer(const std::vector<Vertex>& vertices){
   glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);   // transfer data to GPU & specify how often data will change / will be used
   
   // specify how data is arranged in buffer
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);   // '0' = index of vertex attribute; '3' = components per vertex attribute; ... ; '6 * sizeof()' = size of array element; '(void*)0' = initial offset (none)
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);   // '0' = index of vertex attribute; '3' = components per vertex attribute; ... ; 'sizeof(Vertex)' = size of array element; '(void*)0' = initial offset (none)
   glEnableVertexAttribArray(0);   // enables vertex attribte number '0'
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)sizeof(glm::vec3));   // '1' = index of vertex attribute; '3' = components per vertex attribute; ... ; '6 * sizeof()' = size of array element; '(void*)(3* sizeof(float)' = initial offset (skip x,y,z)
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)sizeof(glm::vec3));   // '1' = index of vertex attribute; '3' = components per vertex attribute; ... ; 'sizeof(Vertex)' = size of array element; '(void*)sizeof(glm::vec3)' = initial offset (skip x,y,z)
   glEnableVertexAttribArray(1);
 }
 
@@ -107,6 +110,29 @@ void GShape::render(){
 GTriangle::GTriangle(glm::vec3 position, const std::vector<Vertex>& vertices)
   : GShape(position, vertices){   // pass argument to base constructor
     
+    if(vertices.size() != 3)
+      throw std::runtime_error("Could not create GTriangle! (Invalid vertex count)");
+}
+
+
+
+//------------------------------------------------------------------------------
+GTriangle::GTriangle(glm::vec3 position, float size, glm::vec3 colour)
+  : GShape(position, {}){   // pass argument to base constructor
+    
+    // create equilateral triangle
+    float height = size * sqrt(3) / 2;
+    float third = 1.0f / 3.0f;
+    
+    std::vector<Vertex> vertices = {
+      {{ size / 2   , - third * height   , 0.0f}, colour},
+      {{ - size / 2 , - third * height   , 0.0f}, colour},
+      {{ 0.0f       , 2 * third * height , 0.0f}, colour},
+    };
+    
+    // update vertex data
+    index_count = 3;
+    setup_vertex_buffer(vertices);
 }
 
 

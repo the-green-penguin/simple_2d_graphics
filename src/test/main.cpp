@@ -34,16 +34,11 @@ int main(int argc, char* argv[]){
 	
 	Window window("Test");
 	
-	std::vector<Vertex> test_vertices = {
-    {{50.0f, -50.0f, 0.0f},   {1.0f, 0.0f, 0.0f}},
-    {{-50.0f, -50.0f, 0.0f},   {0.0f, 1.0f, 0.0f}},
-    {{0.0f, 50.0f, 0.0f},   {0.0f, 0.0f, 1.0f}},
-  };
-	
 	window.add_gobject(
 		std::make_shared<GTriangle>(
 			glm::vec3(0.0f, 0.0f, 0.0f),
-			test_vertices
+			50.0f,
+			glm::vec3(0.5f, 0.5f, 0.0f)
 		)
 	);
 	
