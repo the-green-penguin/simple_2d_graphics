@@ -143,7 +143,7 @@ void Window::setup_glfw_debugging(){
 //------------------------------------------------------------------------------
 void Window::setup_shader_program(){
   std::vector<std::string> shader_sources = {"src/shaders/simple_2d.frag", "src/shaders/simple_2d.vert"};
-  this->shader_program = std::make_unique<Shader_Program>(shader_sources);
+  this->shader_program = std::make_shared<Shader_Program>(shader_sources);
   shader_program->use();
 }
 
@@ -160,25 +160,25 @@ void Window::render(){
   glClear(GL_COLOR_BUFFER_BIT);
   
   // test
-  glm::mat4 model = glm::mat4(1.0f);   // identity matrix
+  ///glm::mat4 model = glm::mat4(1.0f);   // identity matrix
   glm::mat4 view = glm::mat4(1.0f);
   glm::mat4 projection = glm::mat4(1.0f);
   
-  float time = glfwGetTime();
-  model = glm::rotate(model, time, glm::vec3(0.0f, 0.0f, 1.0f));   // "rotate by time" around z = (0, 0, 1) axis
+  ///float time = glfwGetTime();
+  ///model = glm::rotate(model, time, glm::vec3(0.0f, 0.0f, 1.0f));   // "rotate by time" around z = (0, 0, 1) axis
   
-  view = glm::translate(view, glm::vec3(200.0f, 200.0f, 0.0f));   // triangle moved to bottom right
+  ///view = glm::translate(view, glm::vec3(200.0f, 200.0f, 0.0f));   // triangle moved to bottom right
   
   projection = glm::ortho(0.0f, (float)width, (float)height, 0.0f, -1.0f, 1.0f);
   
   // apply transformation
-  shader_program->set_uni("model", model);
+  ///shader_program->set_uni("model", model);
   shader_program->set_uni("view", view);
   shader_program->set_uni("projection", projection);
   
   // render objects
   for(auto &obj : graphics_objects)
-    obj->render();
+    obj->render(shader_program);
   
   // show content
   glfwSwapBuffers(window);

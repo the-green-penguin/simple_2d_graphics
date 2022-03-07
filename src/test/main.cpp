@@ -36,7 +36,7 @@ int main(int argc, char* argv[]){
 	
 	window.add_gobject(
 		std::make_shared<GTriangle>(
-			glm::vec3(0.0f, 0.0f, 0.0f),
+			glm::vec3(200.0f, 200.0f, 0.0f),
 			50.0f,
 			glm::vec3(0.5f, 0.5f, 0.0f)
 		)

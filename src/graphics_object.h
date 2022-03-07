@@ -28,6 +28,7 @@ SOFTWARE.
 #pragma once
 
 #include <vector>
+#include <memory>
 
 ///#define GLFW_INCLUDE_NONE     // not needed/working on Ubuntu, etc.
 // #include <glad/gl.h>     // not needed/working on Ubuntu, etc.
@@ -35,6 +36,9 @@ SOFTWARE.
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>   // sudo apt install libglm-dev
+#include <glm/gtc/matrix_transform.hpp>
+
+#include "shader_program.h"
 
 
 
@@ -50,7 +54,7 @@ class GObject{
 public:
   GObject(glm::vec3 position);
   ~GObject();
-  virtual void render() = 0;
+  virtual void render(std::shared_ptr<Shader_Program> shader_program) = 0;
   
 protected:
   glm::vec3 position;
@@ -66,13 +70,15 @@ public:
     const std::vector<Vertex>& vertices
   );
   ~GShape();
-  virtual void render();
+  virtual void render(std::shared_ptr<Shader_Program> shader_program);
   
 protected:
   GLuint vertex_buffer, vertex_array_object;
   std::size_t index_count;
+  float rotation = 180.0f;  // degrees
   
-  void setup_vertex_buffer(const std::vector<Vertex>& vertices);
+  virtual void setup_vertex_buffer(const std::vector<Vertex>& vertices);
+  virtual void model_transformation(std::shared_ptr<Shader_Program> shader_program);
 };
 
 

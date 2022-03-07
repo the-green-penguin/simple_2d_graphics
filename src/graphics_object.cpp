@@ -73,6 +73,16 @@ GShape::~GShape(){}
 
 
 
+//------------------------------------------------------------------------------
+void GShape::render(std::shared_ptr<Shader_Program> shader_program){
+  model_transformation(shader_program);
+  
+  glBindVertexArray(vertex_array_object);
+  glDrawArrays(GL_TRIANGLES, 0, index_count);
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // GShape private
 ////////////////////////////////////////////////////////////////////////////////
@@ -96,9 +106,13 @@ void GShape::setup_vertex_buffer(const std::vector<Vertex>& vertices){
 
 
 //------------------------------------------------------------------------------
-void GShape::render(){
-  glBindVertexArray(vertex_array_object);
-  glDrawArrays(GL_TRIANGLES, 0, index_count);
+void GShape::model_transformation(std::shared_ptr<Shader_Program> shader_program){
+  glm::mat4 mtrans = glm::mat4(1.0f);
+  
+  mtrans = glm::translate(mtrans, position);
+  mtrans = glm::rotate(mtrans, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));   // z-axis
+  
+  shader_program->set_uni("model", mtrans);
 }
 
 

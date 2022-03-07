@@ -53,7 +53,7 @@ private:
   GLFWwindow* window;
   std::string window_name;
   int width, height;
-  std::unique_ptr<Shader_Program> shader_program;
+  std::shared_ptr<Shader_Program> shader_program;
   std::vector<
     std::shared_ptr<GObject>
   > graphics_objects;
