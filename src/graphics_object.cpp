@@ -48,6 +48,11 @@ GObject::~GObject(){}
 
 
 
+//------------------------------------------------------------------------------
+void GObject::set_position(glm::vec3 pos){  this-> position = pos;  }
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // GObject private
 ////////////////////////////////////////////////////////////////////////////////
@@ -58,8 +63,10 @@ GObject::~GObject(){}
 // GShape public
 ////////////////////////////////////////////////////////////////////////////////
 
-GShape::GShape(glm::vec3 position, const std::vector<Vertex>& vertices)
-  : GObject(position){   // pass argument to base constructor
+GShape::GShape(glm::vec3 position, float rotation, const std::vector<Vertex>& vertices)
+  : GObject(position){
+    
+    this->rotation = rotation;
     
     index_count = vertices.size();
     if(vertices.size() != 0)
@@ -80,6 +87,11 @@ void GShape::render(std::shared_ptr<Shader_Program> shader_program){
   glBindVertexArray(vertex_array_object);
   glDrawArrays(GL_TRIANGLES, 0, index_count);
 }
+
+
+
+//------------------------------------------------------------------------------
+void GShape::set_rotation(float rot){  this-> rotation = rot;  }
 
 
 
@@ -121,8 +133,8 @@ void GShape::model_transformation(std::shared_ptr<Shader_Program> shader_program
 // GTriangle public
 ////////////////////////////////////////////////////////////////////////////////
 
-GTriangle::GTriangle(glm::vec3 position, const std::vector<Vertex>& vertices)
-  : GShape(position, vertices){   // pass argument to base constructor
+GTriangle::GTriangle(glm::vec3 position, float rotation, const std::vector<Vertex>& vertices)
+  : GShape(position, rotation, vertices){
     
     if(vertices.size() != 3)
       throw std::runtime_error("Could not create GTriangle! (Invalid vertex count)");
@@ -131,8 +143,14 @@ GTriangle::GTriangle(glm::vec3 position, const std::vector<Vertex>& vertices)
 
 
 //------------------------------------------------------------------------------
-GTriangle::GTriangle(glm::vec3 position, float size, glm::vec3 colour)
-  : GShape(position, {}){   // pass argument to base constructor
+GTriangle::GTriangle(glm::vec3 position, const std::vector<Vertex>& vertices)
+  : GTriangle(position, 0.0f, vertices){}   // set rotation to default
+
+
+
+//------------------------------------------------------------------------------
+GTriangle::GTriangle(glm::vec3 position, float rotation, float size, glm::vec3 colour)
+  : GShape(position, rotation, {}){
     
     // create equilateral triangle
     float height = size * sqrt(3) / 2;
@@ -148,6 +166,12 @@ GTriangle::GTriangle(glm::vec3 position, float size, glm::vec3 colour)
     index_count = 3;
     setup_vertex_buffer(vertices);
 }
+
+
+
+//------------------------------------------------------------------------------
+GTriangle::GTriangle(glm::vec3 position, float size, glm::vec3 colour)
+  : GTriangle(position, 0.0f, size, colour){}   // set rotation to default
 
 
 

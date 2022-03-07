@@ -160,21 +160,21 @@ void Window::render(){
   glClear(GL_COLOR_BUFFER_BIT);
   
   // test
-  ///glm::mat4 model = glm::mat4(1.0f);   // identity matrix
   glm::mat4 view = glm::mat4(1.0f);
-  glm::mat4 projection = glm::mat4(1.0f);
-  
-  ///float time = glfwGetTime();
-  ///model = glm::rotate(model, time, glm::vec3(0.0f, 0.0f, 1.0f));   // "rotate by time" around z = (0, 0, 1) axis
+  glm::mat4 projection = glm::mat4(1.0f);  
   
   ///view = glm::translate(view, glm::vec3(200.0f, 200.0f, 0.0f));   // triangle moved to bottom right
-  
   projection = glm::ortho(0.0f, (float)width, (float)height, 0.0f, -1.0f, 1.0f);
   
   // apply transformation
-  ///shader_program->set_uni("model", model);
   shader_program->set_uni("view", view);
   shader_program->set_uni("projection", projection);
+  
+  float time = glfwGetTime();
+  graphics_objects[0]->set_rotation(time * 10);
+  graphics_objects[0]->set_position(
+    glm::vec3(200.0f + time * 10, 200.0f + time * 10, 0.0f)
+  );
   
   // render objects
   for(auto &obj : graphics_objects)

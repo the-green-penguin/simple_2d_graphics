@@ -55,9 +55,11 @@ public:
   GObject(glm::vec3 position);
   ~GObject();
   virtual void render(std::shared_ptr<Shader_Program> shader_program) = 0;
+  virtual void set_rotation(float rot) = 0;
+  void set_position(glm::vec3 pos);
   
 protected:
-  glm::vec3 position;
+  glm::vec3 position = {0.0f, 0.0f, 0.0f};
 };
 
 
@@ -67,15 +69,17 @@ class GShape: public GObject{
 public:
   GShape(
     glm::vec3 position,
+    float rotation,
     const std::vector<Vertex>& vertices
   );
   ~GShape();
   virtual void render(std::shared_ptr<Shader_Program> shader_program);
+  void set_rotation(float rot);
   
 protected:
   GLuint vertex_buffer, vertex_array_object;
   std::size_t index_count;
-  float rotation = 180.0f;  // degrees
+  float rotation = 0.0f;  // degrees
   
   virtual void setup_vertex_buffer(const std::vector<Vertex>& vertices);
   virtual void model_transformation(std::shared_ptr<Shader_Program> shader_program);
@@ -88,7 +92,18 @@ class GTriangle: public GShape{
 public:
   GTriangle(
     glm::vec3 position,
+    float rotation,
     const std::vector<Vertex>& vertices
+  );
+  GTriangle(
+    glm::vec3 position,
+    const std::vector<Vertex>& vertices
+  );
+  GTriangle(
+    glm::vec3 position,
+    float rotation,
+    float size,
+    glm::vec3 colour
   );
   GTriangle(
     glm::vec3 position,
