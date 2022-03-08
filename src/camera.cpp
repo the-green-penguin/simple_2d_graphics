@@ -22,83 +22,64 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
+
 */
 
-#include <iostream>
-#include <thread>
-#include <mutex>
-#include <chrono>
+#include "camera.h"
 
-#include "../window.h"
+#include <exception>
 
-using namespace std::chrono_literals;
-
-
-
-void test();
-void create_gobjects(Window& window);
-void loop(Window& window);
+#include <glm/glm.hpp>   // sudo apt install libglm-dev
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 
 
-int main(int argc, char* argv[]){
-	
-	test();
-	
-	return 0;
+////////////////////////////////////////////////////////////////////////////////
+// public
+////////////////////////////////////////////////////////////////////////////////
+
+Camera::Camera(){}
+
+
+
+//------------------------------------------------------------------------------
+Camera::Camera(glm::vec3 position){
+  this->position = position;
 }
 
 
 
 //------------------------------------------------------------------------------
-void test(){
-	Window window("Test");
-	window.wait_for_setup();
-	
-	create_gobjects(window);
-	loop(window);	
+Camera::~Camera(){}
+
+
+
+//------------------------------------------------------------------------------
+void Camera::set_position(glm::vec3 pos){
+  this->position = pos;
 }
 
 
 
 //------------------------------------------------------------------------------
-void create_gobjects(Window& window){
-	window.add_gobject(
-		std::make_shared<GTriangle>(
-			glm::vec3(200.0f, 200.0f, 0.0f),
-			50.0f,
-			glm::vec3(0.5f, 0.5f, 0.0f)
-		)
-	);
-	
-	window.add_gobject(
-		std::make_shared<GTriangle>(
-			glm::vec3(200.0f, 200.0f, 0.0f),
-			90.0f, 10.0f,
-			glm::vec3(0.25f, 0.25f, 0.7f)
-		)
-	);
+void Camera::update(std::shared_ptr< Shader_Program > shader_program, float screen_width, float screen_height){
+  // camera position
+  glm::mat4 camera = glm::mat4(1.0f);
+  camera = glm::translate(camera, position);
+  shader_program->set_uni("view", camera);
+  
+  // camera mode
+  if( ! is_ortho)
+    throw std::runtime_error("Window->Camera: Perspective projection not supported!");
+    
+  glm::mat4 projection = glm::mat4(1.0f);
+  projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
+  shader_program->set_uni("projection", projection);
 }
 
 
 
-//------------------------------------------------------------------------------
-void loop(Window& window){
-	auto gobj = window.graphics_objects;
-	
-	for(int i = 0; i < 100; i++){
-		{
-			std::lock_guard<std::mutex> lg(gobj->second);   // lock vector
-  		gobj->first[0]->set_rotation(i);
-  		gobj->first[0]->set_position(
-    		glm::vec3(200.0f + i, 200.0f + i, 0.0f)
-  		);
-		}
-		
-		window.set_camera_position(
-			glm::vec3(0.0f + i/2, 0.0f + i, 0.0f)
-		);
-		
-		std::this_thread::sleep_for(10ms);
-	}
-}
+////////////////////////////////////////////////////////////////////////////////
+// private
+////////////////////////////////////////////////////////////////////////////////

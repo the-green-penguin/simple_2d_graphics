@@ -32,10 +32,6 @@ SOFTWARE.
 #include <exception>
 #include <chrono>
 
-#include <glm/glm.hpp>   // sudo apt install libglm-dev
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 
 
 void glfw_error(int error, const char* description);
@@ -66,6 +62,15 @@ Window::~Window(){
 
 
 //------------------------------------------------------------------------------
+void Window::wait_for_setup(){
+  using namespace std::chrono_literals;
+  while( ! setup_ready->load())
+    std::this_thread::sleep_for(100ns);
+}
+
+
+
+//------------------------------------------------------------------------------
 void Window::add_gobject(std::shared_ptr<GShape> gobject){
   helper->add_gobject(gobject);
 }
@@ -73,10 +78,8 @@ void Window::add_gobject(std::shared_ptr<GShape> gobject){
 
 
 //------------------------------------------------------------------------------
-void Window::wait_for_setup(){
-  using namespace std::chrono_literals;
-  while( ! setup_ready->load())
-    std::this_thread::sleep_for(100ns);
+void Window::set_camera_position(glm::vec3 pos){
+  helper->camera.set_position(pos);
 }
 
 
@@ -221,30 +224,28 @@ void Window::Window_Helper::render(){
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
   
-  // test
-  glm::mat4 view = glm::mat4(1.0f);
-  glm::mat4 projection = glm::mat4(1.0f);  
-  
-  ///view = glm::translate(view, glm::vec3(200.0f, 200.0f, 0.0f));   // triangle moved to bottom right
-  projection = glm::ortho(0.0f, (float)width, (float)height, 0.0f, -1.0f, 1.0f);
-  
-  // apply transformation
-  shader_program->set_uni("view", view);
-  shader_program->set_uni("projection", projection);
-  
-  // render objects
-  std::unique_lock<std::mutex> ul(graphics_objects->second);   // lock vector
-  for(auto &obj : graphics_objects->first){
-    if(obj->buffers_ready == false)
-      obj->setup_vertex_buffer();
-    
-    obj->render(shader_program);
-  }
-  graphics_objects->second.unlock();   // unlock vector
+  // rendering content
+  camera.update(shader_program, (float)width, (float)height);
+  render_gobjects();
   
   // show content
   glfwSwapBuffers(window);
-  std::cout << "render\n";
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Window_Helper::render_gobjects(){
+  std::lock_guard<std::mutex> lg(graphics_objects->second);   // lock vector
+  
+  for(auto &obj : graphics_objects->first){
+    // create vertex buffer if needed
+    if(obj->buffers_ready == false)
+      obj->setup_vertex_buffer();
+      
+    // actual rendering
+    obj->render(shader_program);
+  }
 }
 
 

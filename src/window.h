@@ -40,8 +40,13 @@ SOFTWARE.
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <glm/glm.hpp>   // sudo apt install libglm-dev
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "shader_program.h"
 #include "graphics_object.h"
+#include "camera.h"
 
 
 
@@ -63,6 +68,7 @@ private:
     std::shared_ptr< sync_gobjects > graphics_objects;
     std::shared_ptr< std::atomic< bool > > setup_ready
       = std::make_shared< std::atomic< bool > >(false);
+    Camera camera;
     
     Window_Helper(const std::string& window_name);
     ~Window_Helper();
@@ -82,20 +88,22 @@ private:
       void setup_shader_program();
     void stop();
     void render();
+      void render_gobjects();
   };
 ////////////////////////////////////////////////////////////////////////////////
   
   std::shared_ptr< Window_Helper > helper;
   std::thread helper_thread;
+  std::shared_ptr< std::atomic< bool > > setup_ready;
   
   
   
 public:
   std::shared_ptr< sync_gobjects > graphics_objects;
-  std::shared_ptr< std::atomic< bool > > setup_ready;
   
   Window(const std::string& window_name);
   ~Window();
-  void add_gobject(std::shared_ptr< GShape > gobject);
   void wait_for_setup();
+  void add_gobject(std::shared_ptr< GShape > gobject);
+  void set_camera_position(glm::vec3 pos);
 };
