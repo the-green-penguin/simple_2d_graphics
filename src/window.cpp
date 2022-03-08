@@ -44,11 +44,51 @@ void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// public
+// Window public
 ////////////////////////////////////////////////////////////////////////////////
 
 Window::Window(const std::string& window_name){
+  helper = make_shared< Window_Helper >(window_name);
+  helper_thread = std::thread(&Window_Helper::run, helper);
+}
+
+
+
+//------------------------------------------------------------------------------
+Window::~Window(){
+  helper_thread.join();
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Window private
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Helper public
+////////////////////////////////////////////////////////////////////////////////
+
+Window::Window_Helper::Window_Helper(const std::string& window_name){
   this->window_name = window_name;
+  graphics_objects = std::make_shared< sync_gobjects >();
+  
+  
+}
+
+
+
+//------------------------------------------------------------------------------
+Window::Window_Helper::~Window_Helper(){
+  
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Window_Helper::run(){   // run as separate thread
   
   try{
     setup_glfw();
@@ -60,12 +100,12 @@ Window::Window(const std::string& window_name){
     std::string error_message = "Error: Unable to open new window!\n\nCaused by exception:\n";
     throw std::runtime_error(error_message + e.what());
   }
-}
-
-
-
-//------------------------------------------------------------------------------
-Window::~Window(){
+  
+  while(!glfwWindowShouldClose(window)){  //"...ShouldClose()" requires "...PollEvents()"!
+    render();   
+    glfwPollEvents();
+  }
+  
   glfwDestroyWindow(window);
   glfwTerminate();
 }
@@ -73,27 +113,18 @@ Window::~Window(){
 
 
 //------------------------------------------------------------------------------
-void Window::run(){   // run as separate thread
-  while(!glfwWindowShouldClose(window)){  //"...ShouldClose()" requires "...PollEvents()"!
-    render();   
-    glfwPollEvents();
-  }
-}
-
-
-
-//------------------------------------------------------------------------------
-void Window::add_gobject(const std::shared_ptr<GObject>& gobject){
-  graphics_objects.push_back(gobject);
+void Window::Window_Helper::add_gobject(std::shared_ptr<GObject> gobject){
+  std::lock_guard<std::mutex> lg(graphics_objects->second);   // lock vector
+  graphics_objects->first.push_back(gobject);
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// private
+// Helper private
 ////////////////////////////////////////////////////////////////////////////////
 
-void Window::setup_glfw(){
+void Window::Window_Helper::setup_glfw(){
   if(!glfwInit())
     throw std::runtime_error("GLFW initialization failed!");
   
@@ -116,7 +147,7 @@ void Window::setup_glfw(){
 
 
 //------------------------------------------------------------------------------
-void Window::setup_glew(){
+void Window::Window_Helper::setup_glew(){
   GLenum err = glewInit();   // needs to be called after context is created!
   if (err != GLEW_OK){
     std::cerr << "glewInit() returned: '" << glewGetErrorString(err) << "'\n";
@@ -127,7 +158,7 @@ void Window::setup_glew(){
 
 
 //------------------------------------------------------------------------------
-void Window::setup_glfw_debugging(){
+void Window::Window_Helper::setup_glfw_debugging(){
   int flags;
   glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
   if(flags & GL_CONTEXT_FLAG_DEBUG_BIT){   // check if debug flag was set -> configure debugging
@@ -141,7 +172,7 @@ void Window::setup_glfw_debugging(){
 
 
 //------------------------------------------------------------------------------
-void Window::setup_shader_program(){
+void Window::Window_Helper::setup_shader_program(){
   std::vector<std::string> shader_sources = {"src/shaders/simple_2d.frag", "src/shaders/simple_2d.vert"};
   this->shader_program = std::make_shared<Shader_Program>(shader_sources);
   shader_program->use();
@@ -150,7 +181,7 @@ void Window::setup_shader_program(){
 
 
 //------------------------------------------------------------------------------
-void Window::render(){
+void Window::Window_Helper::render(){
   // window size
   glfwGetFramebufferSize(window, &width, &height);
   glViewport(0, 0, width, height);
@@ -170,15 +201,11 @@ void Window::render(){
   shader_program->set_uni("view", view);
   shader_program->set_uni("projection", projection);
   
-  float time = glfwGetTime();
-  graphics_objects[0]->set_rotation(time * 10);
-  graphics_objects[0]->set_position(
-    glm::vec3(200.0f + time * 10, 200.0f + time * 10, 0.0f)
-  );
-  
   // render objects
-  for(auto &obj : graphics_objects)
+  std::unique_lock<std::mutex> ul(graphics_objects->second);   // lock vector
+  for(auto &obj : graphics_objects->first)
     obj->render(shader_program);
+  graphics_objects->second.unlock();   // unlock vector
   
   // show content
   glfwSwapBuffers(window);

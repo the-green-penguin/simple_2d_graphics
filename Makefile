@@ -34,8 +34,8 @@ OBJ = $(patsubst %.cpp, %.o, $(SRC) )
 
 # flags
 CPP_V = -std=c++2a
-DEBUG_FLAGS = -g -Wall -Wextra -pedantic -fPIC -O0
-RELEASE_FLAGS = -fPIC -O3
+DEBUG_FLAGS = -g -Wall -Wextra -pedantic -fPIC -pthread -O0
+RELEASE_FLAGS = -fPIC -pthread -O3
 CFLAGS = $(DEBUG_FLAGS)
 
 # includes & libraries

@@ -25,24 +25,47 @@ SOFTWARE.
 */
 
 #include <iostream>
+#include <thread>
 
 #include "../window.h"
 
 
 
+void graphics();
+
+
+
 int main(int argc, char* argv[]){
 	
-	Window window("Test");
-	
-	window.add_gobject(
-		std::make_shared<GTriangle>(
-			glm::vec3(200.0f, 200.0f, 0.0f),
-			50.0f,
-			glm::vec3(0.5f, 0.5f, 0.0f)
-		)
-	);
-	
-	window.run();
+	graphics();
+	///std::thread test(graphics);
+	///test.join();
 	
 	return 0;
+}
+
+
+
+//------------------------------------------------------------------------------
+void graphics(){
+	Window window("Test");
+	///window.run();
+	
+	///window.add_gobject(
+	///	std::make_shared<GTriangle>(
+	///		glm::vec3(200.0f, 200.0f, 0.0f),
+	///		50.0f,
+	///		glm::vec3(0.5f, 0.5f, 0.0f)
+	///	)
+	///);
+	
+	
+	///float time = glfwGetTime();
+	///auto gobj = window.graphics_objects;
+  ///gobj.front()->set_rotation(time * 10);
+  ///gobj.front()->set_position(
+  ///  glm::vec3(200.0f + time * 10, 200.0f + time * 10, 0.0f)
+  ///);
+	
+	
 }

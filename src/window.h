@@ -29,7 +29,10 @@ SOFTWARE.
 
 #include <string>
 #include <memory>
+#include <thread>
+#include <mutex>
 #include <vector>
+#include <utility>
 
 ///#define GLFW_INCLUDE_NONE     // not needed/working on Ubuntu, etc.
 // #include <glad/gl.h>     // not needed/working on Ubuntu, etc.
@@ -41,27 +44,48 @@ SOFTWARE.
 
 
 
+typedef std::pair<
+  std::vector<
+    std::shared_ptr< GObject >
+  >,
+  std::mutex
+> sync_gobjects;
+
+
+
 // .cpp contains non-member function!
 class Window{
+private:
+////////////////////////////////////////////////////////////////////////////////
+  class Window_Helper{
+  public:
+    std::shared_ptr< sync_gobjects > graphics_objects;
+    
+    Window_Helper(const std::string& window_name);
+    ~Window_Helper();
+    void run();
+    void add_gobject(std::shared_ptr< GObject > gobject);
+    
+  private:
+    GLFWwindow* window;
+    std::string window_name;
+    int width, height;
+    std::shared_ptr< Shader_Program > shader_program;
+    
+    void setup_glfw();
+    void setup_glew();
+    void setup_glfw_debugging();
+    void setup_shader_program();
+    void render();
+  };
+////////////////////////////////////////////////////////////////////////////////
+  
+  
+  
 public:
+  std::shared_ptr< Window_Helper > helper;
+  std::thread helper_thread;
+  
   Window(const std::string& window_name);
   ~Window();
-  void run();   // run as separate thread
-  void add_gobject(const std::shared_ptr<GObject>& gobject);
-  
-private:
-  GLFWwindow* window;
-  std::string window_name;
-  int width, height;
-  std::shared_ptr<Shader_Program> shader_program;
-  std::vector<
-    std::shared_ptr<GObject>
-  > graphics_objects;
-  
-  void test();
-  void setup_glfw();
-  void setup_glew();
-  void setup_glfw_debugging();
-  void setup_shader_program();
-  void render();
 };
