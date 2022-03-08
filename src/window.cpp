@@ -30,6 +30,7 @@ SOFTWARE.
 #include <iostream>
 #include <string>
 #include <exception>
+#include <chrono>
 
 #include <glm/glm.hpp>   // sudo apt install libglm-dev
 #include <glm/gtc/matrix_transform.hpp>
@@ -49,6 +50,9 @@ void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum 
 
 Window::Window(const std::string& window_name){
   helper = make_shared< Window_Helper >(window_name);
+  graphics_objects = helper->graphics_objects;
+  setup_ready = helper->setup_ready;
+  
   helper_thread = std::thread(&Window_Helper::run, helper);
 }
 
@@ -57,6 +61,22 @@ Window::Window(const std::string& window_name){
 //------------------------------------------------------------------------------
 Window::~Window(){
   helper_thread.join();
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::add_gobject(std::shared_ptr<GShape> gobject){
+  helper->add_gobject(gobject);
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::wait_for_setup(){
+  using namespace std::chrono_literals;
+  while( ! setup_ready->load())
+    std::this_thread::sleep_for(100ns);
 }
 
 
@@ -73,23 +93,43 @@ Window::~Window(){
 
 Window::Window_Helper::Window_Helper(const std::string& window_name){
   this->window_name = window_name;
-  graphics_objects = std::make_shared< sync_gobjects >();
-  
-  
+  this->graphics_objects = std::make_shared< sync_gobjects >();
 }
 
 
 
 //------------------------------------------------------------------------------
-Window::Window_Helper::~Window_Helper(){
-  
-}
+Window::Window_Helper::~Window_Helper(){}
 
 
 
 //------------------------------------------------------------------------------
 void Window::Window_Helper::run(){   // run as separate thread
+  init();
   
+  while(!glfwWindowShouldClose(window)){  //"...ShouldClose()" requires "...PollEvents()"!
+    render();   
+    glfwPollEvents();
+  }
+  
+  stop();
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Window_Helper::add_gobject(std::shared_ptr<GShape> gobject){
+  std::lock_guard<std::mutex> lg(graphics_objects->second);   // lock vector
+  graphics_objects->first.push_back(gobject);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Helper private
+////////////////////////////////////////////////////////////////////////////////
+
+void Window::Window_Helper::init(){
   try{
     setup_glfw();
     setup_glew();
@@ -101,29 +141,12 @@ void Window::Window_Helper::run(){   // run as separate thread
     throw std::runtime_error(error_message + e.what());
   }
   
-  while(!glfwWindowShouldClose(window)){  //"...ShouldClose()" requires "...PollEvents()"!
-    render();   
-    glfwPollEvents();
-  }
-  
-  glfwDestroyWindow(window);
-  glfwTerminate();
+  setup_ready->store(true);
 }
 
 
 
 //------------------------------------------------------------------------------
-void Window::Window_Helper::add_gobject(std::shared_ptr<GObject> gobject){
-  std::lock_guard<std::mutex> lg(graphics_objects->second);   // lock vector
-  graphics_objects->first.push_back(gobject);
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Helper private
-////////////////////////////////////////////////////////////////////////////////
-
 void Window::Window_Helper::setup_glfw(){
   if(!glfwInit())
     throw std::runtime_error("GLFW initialization failed!");
@@ -181,6 +204,14 @@ void Window::Window_Helper::setup_shader_program(){
 
 
 //------------------------------------------------------------------------------
+void Window::Window_Helper::stop(){
+  glfwDestroyWindow(window);
+  glfwTerminate();
+}
+
+
+
+//------------------------------------------------------------------------------
 void Window::Window_Helper::render(){
   // window size
   glfwGetFramebufferSize(window, &width, &height);
@@ -203,12 +234,17 @@ void Window::Window_Helper::render(){
   
   // render objects
   std::unique_lock<std::mutex> ul(graphics_objects->second);   // lock vector
-  for(auto &obj : graphics_objects->first)
+  for(auto &obj : graphics_objects->first){
+    if(obj->buffers_ready == false)
+      obj->setup_vertex_buffer();
+    
     obj->render(shader_program);
+  }
   graphics_objects->second.unlock();   // unlock vector
   
   // show content
   glfwSwapBuffers(window);
+  std::cout << "render\n";
 }
 
 

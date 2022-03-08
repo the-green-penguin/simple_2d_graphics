@@ -55,7 +55,6 @@ public:
   GObject(glm::vec3 position);
   ~GObject();
   virtual void render(std::shared_ptr<Shader_Program> shader_program) = 0;
-  virtual void set_rotation(float rot) = 0;
   void set_position(glm::vec3 pos);
   
 protected:
@@ -67,21 +66,24 @@ protected:
 //------------------------------------------------------------------------------
 class GShape: public GObject{
 public:
+  bool buffers_ready = false;
+  
   GShape(
     glm::vec3 position,
     float rotation,
     const std::vector<Vertex>& vertices
   );
   ~GShape();
+  virtual void setup_vertex_buffer();
   virtual void render(std::shared_ptr<Shader_Program> shader_program);
   void set_rotation(float rot);
   
 protected:
   GLuint vertex_buffer, vertex_array_object;
+  std::vector<Vertex> vertices;
   std::size_t index_count;
   float rotation = 0.0f;  // degrees
   
-  virtual void setup_vertex_buffer(const std::vector<Vertex>& vertices);
   virtual void model_transformation(std::shared_ptr<Shader_Program> shader_program);
 };
 

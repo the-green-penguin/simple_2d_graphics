@@ -31,6 +31,7 @@ SOFTWARE.
 #include <memory>
 #include <thread>
 #include <mutex>
+#include <atomic>
 #include <vector>
 #include <utility>
 
@@ -46,7 +47,7 @@ SOFTWARE.
 
 typedef std::pair<
   std::vector<
-    std::shared_ptr< GObject >
+    std::shared_ptr< GShape >
   >,
   std::mutex
 > sync_gobjects;
@@ -60,11 +61,13 @@ private:
   class Window_Helper{
   public:
     std::shared_ptr< sync_gobjects > graphics_objects;
+    std::shared_ptr< std::atomic< bool > > setup_ready
+      = std::make_shared< std::atomic< bool > >(false);
     
     Window_Helper(const std::string& window_name);
     ~Window_Helper();
     void run();
-    void add_gobject(std::shared_ptr< GObject > gobject);
+    void add_gobject(std::shared_ptr< GShape > gobject);
     
   private:
     GLFWwindow* window;
@@ -72,20 +75,27 @@ private:
     int width, height;
     std::shared_ptr< Shader_Program > shader_program;
     
-    void setup_glfw();
-    void setup_glew();
-    void setup_glfw_debugging();
-    void setup_shader_program();
+    void init();
+      void setup_glfw();
+      void setup_glew();
+      void setup_glfw_debugging();
+      void setup_shader_program();
+    void stop();
     void render();
   };
 ////////////////////////////////////////////////////////////////////////////////
   
-  
-  
-public:
   std::shared_ptr< Window_Helper > helper;
   std::thread helper_thread;
   
+  
+  
+public:
+  std::shared_ptr< sync_gobjects > graphics_objects;
+  std::shared_ptr< std::atomic< bool > > setup_ready;
+  
   Window(const std::string& window_name);
   ~Window();
+  void add_gobject(std::shared_ptr< GShape > gobject);
+  void wait_for_setup();
 };

@@ -67,16 +67,37 @@ GShape::GShape(glm::vec3 position, float rotation, const std::vector<Vertex>& ve
   : GObject(position){
     
     this->rotation = rotation;
-    
-    index_count = vertices.size();
-    if(vertices.size() != 0)
-      setup_vertex_buffer(vertices);
+    this->vertices = vertices;
+    this->index_count = vertices.size();
 }
 
 
 
 //------------------------------------------------------------------------------
 GShape::~GShape(){}
+
+
+
+//------------------------------------------------------------------------------
+void GShape::setup_vertex_buffer(){
+  // create vertex buffer & array object
+  glGenBuffers(1, &vertex_buffer);   // '1' = number of buffers to be created
+  glGenVertexArrays(1, &vertex_array_object);
+  
+  glBindVertexArray(vertex_array_object);   // following modifications of the buffer are 'recorded' by the array object to be repeated in render loop (?)
+  glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);   // modfying 'GL_ARRAY_BUFFER' now affects 'vertex_buffer' until new/no buffer object is bound
+  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);   // transfer data to GPU & specify how often data will change / will be used
+  
+  // specify how data is arranged in buffer
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);   // '0' = index of vertex attribute; '3' = components per vertex attribute; ... ; 'sizeof(Vertex)' = size of array element; '(void*)0' = initial offset (none)
+  glEnableVertexAttribArray(0);   // enables vertex attribte number '0'
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)sizeof(glm::vec3));   // '1' = index of vertex attribute; '3' = components per vertex attribute; ... ; 'sizeof(Vertex)' = size of array element; '(void*)sizeof(glm::vec3)' = initial offset (skip x,y,z)
+  glEnableVertexAttribArray(1);
+  
+  // cleanup
+  vertices.clear();
+  buffers_ready = true;
+}
 
 
 
@@ -99,25 +120,6 @@ void GShape::set_rotation(float rot){  this-> rotation = rot;  }
 // GShape private
 ////////////////////////////////////////////////////////////////////////////////
 
-void GShape::setup_vertex_buffer(const std::vector<Vertex>& vertices){
-  // create vertex buffer & array object
-  glGenBuffers(1, &vertex_buffer);   // '1' = number of buffers to be created
-  glGenVertexArrays(1, &vertex_array_object);
-  
-  glBindVertexArray(vertex_array_object);   // following modifications of the buffer are 'recorded' by the array object to be repeated in render loop (?)
-  glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);   // modfying 'GL_ARRAY_BUFFER' now affects 'vertex_buffer' until new/no buffer object is bound
-  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);   // transfer data to GPU & specify how often data will change / will be used
-  
-  // specify how data is arranged in buffer
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);   // '0' = index of vertex attribute; '3' = components per vertex attribute; ... ; 'sizeof(Vertex)' = size of array element; '(void*)0' = initial offset (none)
-  glEnableVertexAttribArray(0);   // enables vertex attribte number '0'
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)sizeof(glm::vec3));   // '1' = index of vertex attribute; '3' = components per vertex attribute; ... ; 'sizeof(Vertex)' = size of array element; '(void*)sizeof(glm::vec3)' = initial offset (skip x,y,z)
-  glEnableVertexAttribArray(1);
-}
-
-
-
-//------------------------------------------------------------------------------
 void GShape::model_transformation(std::shared_ptr<Shader_Program> shader_program){
   glm::mat4 mtrans = glm::mat4(1.0f);
   
@@ -156,15 +158,13 @@ GTriangle::GTriangle(glm::vec3 position, float rotation, float size, glm::vec3 c
     float height = size * sqrt(3) / 2;
     float third = 1.0f / 3.0f;
     
-    std::vector<Vertex> vertices = {
+    vertices = {
       {{ size / 2   , - third * height   , 0.0f}, colour},
       {{ - size / 2 , - third * height   , 0.0f}, colour},
       {{ 0.0f       , 2 * third * height , 0.0f}, colour},
     };
     
-    // update vertex data
     index_count = 3;
-    setup_vertex_buffer(vertices);
 }
 
 
