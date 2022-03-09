@@ -39,6 +39,8 @@ void test();
 void create_gobjects(Window& window);
 void loop(Window& window);
 
+id obj_1, obj_2;
+
 
 
 int main(int argc, char* argv[]){
@@ -63,7 +65,7 @@ void test(){
 
 //------------------------------------------------------------------------------
 void create_gobjects(Window& window){
-	window.add_gobject(
+	obj_1 = window.add_gobject(
 		std::make_shared<GTriangle>(
 			glm::vec3(200.0f, 200.0f, 0.0f),
 			50.0f,
@@ -71,7 +73,7 @@ void create_gobjects(Window& window){
 		)
 	);
 	
-	window.add_gobject(
+	obj_2 = window.add_gobject(
 		std::make_shared<GTriangle>(
 			glm::vec3(200.0f, 200.0f, 0.0f),
 			90.0f, 10.0f,
@@ -84,15 +86,19 @@ void create_gobjects(Window& window){
 
 //------------------------------------------------------------------------------
 void loop(Window& window){
-	auto gobj = window.graphics_objects;
+	///auto gobj = window.graphics_objects;
 	
 	for(int i = 0; i < 100; i++){
 		{
-			std::lock_guard<std::mutex> lg(gobj->second);   // lock vector
-  		gobj->first[0]->set_rotation(i);
-  		gobj->first[0]->set_position(
-    		glm::vec3(200.0f + i, 200.0f + i, 0.0f)
-  		);
+			///std::lock_guard<std::mutex> lg(gobj->lock);   // lock vector
+  		///gobj->data[0]->set_rotation(i);
+  		///gobj->data[0]->set_position(
+    	///	glm::vec3(200.0f + i, 200.0f + i, 0.0f)
+  		///);
+			window.set_gobj_position(
+				obj_1, glm::vec3(200.0f + i, 200.0f + i, 0.0f)
+			);
+			window.set_gobj_rotation(obj_1, i);
 		}
 		
 		window.set_camera_position(

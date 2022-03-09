@@ -71,15 +71,34 @@ void Window::wait_for_setup(){
 
 
 //------------------------------------------------------------------------------
-void Window::add_gobject(std::shared_ptr<GShape> gobject){
-  helper->add_gobject(gobject);
+id Window::add_gobject(std::shared_ptr<GShape> gobject){
+  std::lock_guard<std::mutex> lg(helper->graphics_objects->lock);   // lock vector
+  helper->graphics_objects->data.push_back(gobject);
+  return helper->graphics_objects->data.size() - 1;
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::set_camera_position(glm::vec3 pos){
-  helper->camera.set_position(pos);
+  std::lock_guard<std::mutex> lg(helper->camera.lock);   // lock camera
+  helper->camera.data.set_position(pos);
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::set_gobj_position(id id, glm::vec3 pos){
+  std::lock_guard<std::mutex> lg(helper->graphics_objects->lock);   // lock vector
+  helper->graphics_objects->data[id]->set_position(pos);
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::set_gobj_rotation(id id, float rot){
+  std::lock_guard<std::mutex> lg(helper->graphics_objects->lock);   // lock vector
+  helper->graphics_objects->data[id]->set_rotation(rot);
 }
 
 
@@ -116,14 +135,6 @@ void Window::Window_Helper::run(){   // run as separate thread
   }
   
   stop();
-}
-
-
-
-//------------------------------------------------------------------------------
-void Window::Window_Helper::add_gobject(std::shared_ptr<GShape> gobject){
-  std::lock_guard<std::mutex> lg(graphics_objects->second);   // lock vector
-  graphics_objects->first.push_back(gobject);
 }
 
 
@@ -225,7 +236,10 @@ void Window::Window_Helper::render(){
   glClear(GL_COLOR_BUFFER_BIT);
   
   // rendering content
-  camera.update(shader_program, (float)width, (float)height);
+  {
+    std::lock_guard<std::mutex> lg(camera.lock);   // lock camera
+    camera.data.update(shader_program, (float)width, (float)height);
+  }
   render_gobjects();
   
   // show content
@@ -236,9 +250,9 @@ void Window::Window_Helper::render(){
 
 //------------------------------------------------------------------------------
 void Window::Window_Helper::render_gobjects(){
-  std::lock_guard<std::mutex> lg(graphics_objects->second);   // lock vector
+  std::lock_guard<std::mutex> lg(graphics_objects->lock);   // lock vector
   
-  for(auto &obj : graphics_objects->first){
+  for(auto &obj : graphics_objects->data){
     // create vertex buffer if needed
     if(obj->buffers_ready == false)
       obj->setup_vertex_buffer();

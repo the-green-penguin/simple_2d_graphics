@@ -33,7 +33,6 @@ SOFTWARE.
 #include <mutex>
 #include <atomic>
 #include <vector>
-#include <utility>
 
 ///#define GLFW_INCLUDE_NONE     // not needed/working on Ubuntu, etc.
 // #include <glad/gl.h>     // not needed/working on Ubuntu, etc.
@@ -50,12 +49,17 @@ SOFTWARE.
 
 
 
-typedef std::pair<
-  std::vector<
-    std::shared_ptr< GShape >
-  >,
-  std::mutex
-> sync_gobjects;
+typedef struct{
+  std::vector< std::shared_ptr< GShape > > data;
+  std::mutex lock;
+} sync_gobjects;
+
+typedef struct{
+  Camera data;
+  std::mutex lock;
+} sync_camera;
+
+typedef unsigned int id;
 
 
 
@@ -65,15 +69,15 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
   class Window_Helper{
   public:
+    // these are accessed by another thread -> lock needed
     std::shared_ptr< sync_gobjects > graphics_objects;
     std::shared_ptr< std::atomic< bool > > setup_ready
       = std::make_shared< std::atomic< bool > >(false);
-    Camera camera;
+    sync_camera camera;
     
     Window_Helper(const std::string& window_name);
     ~Window_Helper();
     void run();
-    void add_gobject(std::shared_ptr< GShape > gobject);
     
   private:
     GLFWwindow* window;
@@ -104,6 +108,8 @@ public:
   Window(const std::string& window_name);
   ~Window();
   void wait_for_setup();
-  void add_gobject(std::shared_ptr< GShape > gobject);
+  id add_gobject(std::shared_ptr< GShape > gobject);
+  void set_gobj_position(id id, glm::vec3 pos);
+  void set_gobj_rotation(id id, float rot);
   void set_camera_position(glm::vec3 pos);
 };
