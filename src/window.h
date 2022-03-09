@@ -32,7 +32,7 @@ SOFTWARE.
 #include <thread>
 #include <mutex>
 #include <atomic>
-#include <vector>
+#include <unordered_map>
 
 ///#define GLFW_INCLUDE_NONE     // not needed/working on Ubuntu, etc.
 // #include <glad/gl.h>     // not needed/working on Ubuntu, etc.
@@ -49,8 +49,10 @@ SOFTWARE.
 
 
 
+typedef unsigned long long int id;   // if you call "add_gobject()" more than 2^64 times, it's your problem!
+
 typedef struct{
-  std::vector< std::shared_ptr< GShape > > data;
+  std::unordered_map< id, std::shared_ptr< GShape > > data;
   std::mutex lock;
 } sync_gobjects;
 
@@ -58,8 +60,6 @@ typedef struct{
   Camera data;
   std::mutex lock;
 } sync_camera;
-
-typedef unsigned int id;
 
 
 
@@ -99,6 +99,7 @@ private:
   std::shared_ptr< Window_Helper > helper;
   std::thread helper_thread;
   std::shared_ptr< std::atomic< bool > > setup_ready;
+  id next_id = 0;
   
   
   
@@ -109,6 +110,8 @@ public:
   ~Window();
   void wait_for_setup();
   id add_gobject(std::shared_ptr< GShape > gobject);
+  void remove_gobject(id id);
+  void clear_gobjects();
   void set_gobj_position(id id, glm::vec3 pos);
   void set_gobj_rotation(id id, float rot);
   void set_camera_position(glm::vec3 pos);

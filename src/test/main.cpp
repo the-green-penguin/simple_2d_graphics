@@ -55,10 +55,13 @@ int main(int argc, char* argv[]){
 //------------------------------------------------------------------------------
 void test(){
 	Window window("Test");
-	window.wait_for_setup();
+	window.wait_for_setup();   // optional
 	
 	create_gobjects(window);
-	loop(window);	
+	loop(window);
+	window.remove_gobject(obj_1);
+	window.remove_gobject(obj_1);
+	window.clear_gobjects();	
 }
 
 
@@ -86,20 +89,12 @@ void create_gobjects(Window& window){
 
 //------------------------------------------------------------------------------
 void loop(Window& window){
-	///auto gobj = window.graphics_objects;
 	
 	for(int i = 0; i < 100; i++){
-		{
-			///std::lock_guard<std::mutex> lg(gobj->lock);   // lock vector
-  		///gobj->data[0]->set_rotation(i);
-  		///gobj->data[0]->set_position(
-    	///	glm::vec3(200.0f + i, 200.0f + i, 0.0f)
-  		///);
-			window.set_gobj_position(
-				obj_1, glm::vec3(200.0f + i, 200.0f + i, 0.0f)
-			);
-			window.set_gobj_rotation(obj_1, i);
-		}
+		window.set_gobj_position(
+			obj_1, glm::vec3(200.0f + i, 200.0f + i, 0.0f)
+		);
+		window.set_gobj_rotation(obj_1, i);
 		
 		window.set_camera_position(
 			glm::vec3(0.0f + i/2, 0.0f + i, 0.0f)
