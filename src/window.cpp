@@ -271,7 +271,7 @@ void Window::Window_Helper::render_gobjects(){
   for(auto &obj : graphics_objects->data){
     // create vertex buffer if needed
     if(obj.second->buffers_ready == false)
-      obj.second->setup_vertex_buffer();
+      obj.second->setup_buffers();
       
     // actual rendering
     obj.second->render(shader_program);

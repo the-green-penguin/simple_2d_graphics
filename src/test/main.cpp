@@ -39,7 +39,7 @@ void test();
 void create_gobjects(Window& window);
 void loop(Window& window);
 
-id obj_1, obj_2;
+id obj_1, obj_2, obj_3;
 
 
 
@@ -60,8 +60,6 @@ void test(){
 	create_gobjects(window);
 	loop(window);
 	window.remove_gobject(obj_1);
-	window.remove_gobject(obj_1);
-	window.clear_gobjects();	
 }
 
 
@@ -79,8 +77,16 @@ void create_gobjects(Window& window){
 	obj_2 = window.add_gobject(
 		std::make_shared<GTriangle>(
 			glm::vec3(200.0f, 200.0f, 0.0f),
-			90.0f, 10.0f,
+			90.0f, 30.0f,
 			glm::vec3(0.25f, 0.25f, 0.7f)
+		)
+	);
+	
+	obj_3 = window.add_gobject(
+		std::make_shared<GRect>(
+			glm::vec3(200.0f, 200.0f, 0.0f),
+			0.0f, 30.0f,
+			glm::vec3(1.0f, 0.75f, 0.25f)
 		)
 	);
 }

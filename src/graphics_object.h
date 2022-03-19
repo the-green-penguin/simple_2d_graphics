@@ -47,6 +47,12 @@ struct Vertex{
   glm::vec3 colour;
 };
 
+struct Index3{
+  unsigned int a;
+  unsigned int b;
+  unsigned int c;
+};
+
 
 
 //------------------------------------------------------------------------------
@@ -71,16 +77,18 @@ public:
   GShape(
     glm::vec3 position,
     float rotation,
-    const std::vector<Vertex>& vertices
+    const std::vector<Vertex>& vertices,
+    const std::vector<Index3>& indices
   );
   ~GShape();
-  virtual void setup_vertex_buffer();
+  virtual void setup_buffers();
   virtual void render(std::shared_ptr<Shader_Program> shader_program);
   void set_rotation(float rot);
   
 protected:
-  GLuint vertex_buffer, vertex_array_object;
+  GLuint vertex_buffer, vertex_array_object, element_buffer;
   std::vector<Vertex> vertices;
+  std::vector<Index3> indices;
   std::size_t index_count;
   float rotation = 0.0f;  // degrees
   
@@ -113,6 +121,36 @@ public:
     glm::vec3 colour
   );
   ~GTriangle();
+  
+protected:
+};
+
+
+
+//------------------------------------------------------------------------------
+class GRect: public GShape{
+public:
+  GRect(
+    glm::vec3 position,
+    float rotation,
+    const std::vector<Vertex>& vertices
+  );
+  GRect(
+    glm::vec3 position,
+    const std::vector<Vertex>& vertices
+  );
+  GRect(
+    glm::vec3 position,
+    float rotation,
+    float size,
+    glm::vec3 colour
+  );
+  GRect(
+    glm::vec3 position,
+    float size,
+    glm::vec3 colour
+  );
+  ~GRect();
   
 protected:
 };
