@@ -25,9 +25,6 @@ SOFTWARE.
 */
 
 #include <iostream>
-#include <thread>
-#include <mutex>
-#include <chrono>
 
 #include "../window.h"
 

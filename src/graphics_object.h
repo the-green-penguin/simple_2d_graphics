@@ -123,6 +123,7 @@ public:
   ~GTriangle();
   
 protected:
+  std::vector<Index3> tri_index = {{0, 1, 2}};
 };
 
 
@@ -153,4 +154,5 @@ public:
   ~GRect();
   
 protected:
+  std::vector<Index3> rect_index = {{0, 1, 2}, {1, 2, 3}};
 };
