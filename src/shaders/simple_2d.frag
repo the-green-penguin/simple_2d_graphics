@@ -22,7 +22,7 @@
 
 
 
-#version 430 core
+#version 450 core
 
 uniform vec4 uni_color;
 in vec4 vertex_color;

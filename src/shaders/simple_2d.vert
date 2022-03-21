@@ -22,7 +22,7 @@
 
 
 
-#version 430 core   // has to match OpenGL version used (?)
+#version 450 core   // has to match OpenGL version used (?)
 
 layout (location = 0) in vec3 in_pos;   // 'input_position' = x, y, z of vertex
 layout (location = 1) in vec3 in_color;   // 'input_colour' = r, g, b of vertex

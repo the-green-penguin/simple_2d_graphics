@@ -73,8 +73,7 @@ GShape::GShape(
     this->rotation = rotation;
     this->vertices = vertices;
     this->indices = indices;
-    this->index_count = indices.size();
-    std::cout << indices.size() << " - " << this->indices.size() << "\n";
+    this->index_count = indices.size() * 3;
 }
 
 
@@ -90,27 +89,31 @@ GShape::~GShape(){
 
 //------------------------------------------------------------------------------
 void GShape::setup_buffers(){
-  // create vertex buffer & array object
-  glGenBuffers(1, &vertex_buffer);   // '1' = number of buffers to be created
-  glGenBuffers(1, &element_buffer);   // '1' = number of buffers to be created
+  // create vertex/index buffer & array object
   glGenVertexArrays(1, &vertex_array_object);
-  
   glBindVertexArray(vertex_array_object);   // following modifications of the buffer are 'recorded' by the array object to be repeated in render loop (?)
   
+  // vertex buffer
+  glGenBuffers(1, &vertex_buffer);   // '1' = number of buffers to be created
   glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);   // modfying 'GL_ARRAY_BUFFER' now affects 'vertex_buffer' until new/no buffer object is bound
   glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);   // transfer data to GPU & specify how often data will change / will be used
   
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Index3), vertices.data(), GL_STATIC_DRAW);
-  std::cout << indices.size() * sizeof(Index3) << "\n";
-  // specify how data is arranged in buffer
+  // specify how data is arranged in vertex buffer
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);   // '0' = index of vertex attribute; '3' = components per vertex attribute; ... ; 'sizeof(Vertex)' = size of array element; '(void*)0' = initial offset (none)
   glEnableVertexAttribArray(0);   // enables vertex attribte number '0'
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)sizeof(glm::vec3));   // '1' = index of vertex attribute; '3' = components per vertex attribute; ... ; 'sizeof(Vertex)' = size of array element; '(void*)sizeof(glm::vec3)' = initial offset (skip x,y,z)
   glEnableVertexAttribArray(1);
   
+  // index buffer
+  glGenBuffers(1, &element_buffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Index3), vertices.data(), GL_STATIC_DRAW);
+  std::cout << indices.size() * sizeof(Index3) << "\n";
+  ///glVertexArrayElementBuffer(vertex_array_object, element_buffer);   // maybe not bound without this?
+  
   // cleanup
   vertices.clear();
+  indices.clear();
   buffers_ready = true;
 }
 
@@ -122,7 +125,7 @@ void GShape::render(std::shared_ptr<Shader_Program> shader_program){
   
   glBindVertexArray(vertex_array_object);
   ///glDrawArrays(GL_TRIANGLES, 0, index_count);
-  glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, nullptr);   // you don't have to pass 'indices' as it's part of VAO
+  glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
 }
 
 
@@ -168,7 +171,7 @@ GTriangle::GTriangle(glm::vec3 position, const std::vector<Vertex>& vertices)
 
 //------------------------------------------------------------------------------
 GTriangle::GTriangle(glm::vec3 position, float rotation, float size, glm::vec3 colour)
-  : GShape(position, rotation, {}, {{0, 1, 2}}){
+  : GShape(position, rotation, {}, {}){
     
     // create equilateral triangle
     float height = size * sqrt(3) / 2;
@@ -180,7 +183,8 @@ GTriangle::GTriangle(glm::vec3 position, float rotation, float size, glm::vec3 c
       {{ 0.0f       , 2 * third * height , 0.0f}, colour},
     };
     
-    index_count = 3;
+    indices = {{0, 1, 2}};
+    index_count = indices.size() * 3;
 }
 
 
@@ -208,10 +212,12 @@ GTriangle::~GTriangle(){}
 ////////////////////////////////////////////////////////////////////////////////
 
 GRect::GRect(glm::vec3 position, float rotation, const std::vector<Vertex>& vertices)
-  : GShape(position, rotation, vertices, {{0, 1, 3}, {1, 2, 3}}){
+  : GShape(position, rotation, vertices, {}){
     
     if(vertices.size() != 4)
       throw std::runtime_error("Could not create GRect! (Invalid vertex count)");
+
+    indices = {{0, 1, 3}, {1, 2, 3}};
 }
 
 
@@ -224,7 +230,7 @@ GRect::GRect(glm::vec3 position, const std::vector<Vertex>& vertices)
 
 //------------------------------------------------------------------------------
 GRect::GRect(glm::vec3 position, float rotation, float size, glm::vec3 colour)
-  : GShape(position, rotation, {}, {{0, 1, 3}, {1, 2, 3}}){
+  : GShape(position, rotation, {}, {}){
     
     float half = size / 2;
     
@@ -235,7 +241,8 @@ GRect::GRect(glm::vec3 position, float rotation, float size, glm::vec3 colour)
       {{ half   , half  , 0.0f}, colour}
     };
     
-    index_count = 6;
+    indices = {{0, 1, 3}, {1, 2, 3}};
+    index_count = indices.size() * 3;
 }
 
 
