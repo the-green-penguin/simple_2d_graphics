@@ -104,6 +104,14 @@ void Window::set_camera_position(glm::vec3 pos){
 
 
 //------------------------------------------------------------------------------
+void Window::set_camera_zoom(float zoom){
+  std::lock_guard<std::mutex> lg(helper->camera.lock);   // lock camera
+  helper->camera.data.set_zoom(zoom);
+}
+
+
+
+//------------------------------------------------------------------------------
 void Window::set_gobj_position(id id, glm::vec3 pos){
   std::lock_guard<std::mutex> lg(helper->graphics_objects->lock);   // lock map
   helper->graphics_objects->data.at(id)->set_position(pos);

@@ -57,14 +57,14 @@ void test(){
 	
 	create_gobjects(window);
 	loop(window);
-	///window.remove_gobject(obj[0]);
+	window.remove_gobject(obj[0]);
 }
 
 
 
 //------------------------------------------------------------------------------
 void create_gobjects(Window& window){
-	/*obj.push_back(
+	obj.push_back(
 		window.add_gobject(
 			std::make_shared<GTriangle>(
 				glm::vec3(200.0f, 200.0f, 0.0f),
@@ -92,13 +92,13 @@ void create_gobjects(Window& window){
 				glm::vec3(1.0f, 0.75f, 0.25f)
 			)
 		)
-	);*/
+	);
 	
 	obj.push_back(
 		window.add_gobject(
 			std::make_shared<GCircle>(
 				glm::vec3(100.0f, 100.0f, 0.0f),
-				0.0f, 50.0f,
+				0.0f, 100.0f,
 				glm::vec3(1.0f, 0.75f, 0.25f)
 			)
 		)
@@ -111,14 +111,15 @@ void create_gobjects(Window& window){
 void loop(Window& window){
 	
 	for(int i = 0; i < 100; i++){
-		///window.set_gobj_position(
-		///	obj[0], glm::vec3(200.0f + i, 200.0f + i, 0.0f)
-		///);
-		window.set_gobj_rotation(obj[0], i * 10);
+		window.set_gobj_position(
+			obj[0], glm::vec3(200.0f + i, 200.0f + i, 0.0f)
+		);
+		window.set_gobj_rotation(obj[3], i * 10);
 		
-		///window.set_camera_position(
-		///	glm::vec3(0.0f + i/2, 0.0f + i, 0.0f)
-		///);
+		window.set_camera_position(
+			glm::vec3(0.0f + i/2, 0.0f + i, 0.0f)
+		);
+		window.set_camera_zoom(1.0f + i * 0.01f);
 		
 		std::this_thread::sleep_for(10ms);
 	}

@@ -63,6 +63,13 @@ void Camera::set_position(glm::vec3 pos){
 
 
 //------------------------------------------------------------------------------
+void Camera::set_zoom(float zoom){
+  this->zoom = zoom;
+}
+
+
+
+//------------------------------------------------------------------------------
 void Camera::update(std::shared_ptr< Shader_Program > shader_program, float screen_width, float screen_height){
   // camera position
   glm::mat4 camera = glm::mat4(1.0f);
@@ -74,7 +81,11 @@ void Camera::update(std::shared_ptr< Shader_Program > shader_program, float scre
     throw std::runtime_error("Window->Camera: Perspective projection not supported!");
     
   glm::mat4 projection = glm::mat4(1.0f);
-  projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
+  projection = glm::ortho(
+    0.0f, screen_width * zoom,
+    screen_height * zoom, 0.0f,
+    -1.0f, 1.0f
+  );
   shader_program->set_uni("projection", projection);
 }
 

@@ -47,6 +47,7 @@ public:
   Camera(glm::vec3 position);
   ~Camera();
   void set_position(glm::vec3 pos);
+  void set_zoom(float zoom);
   void update(
     std::shared_ptr< Shader_Program > shader_program,
     float screen_width,
@@ -55,5 +56,6 @@ public:
   
 private:
   glm::vec3 position = {0.0f, 0.0f, 0.0f};
+  float zoom = 1;
   bool is_ortho = true;
 };

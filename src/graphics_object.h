@@ -191,7 +191,7 @@ public:
   ~GCircle();
   
 protected:
-  uint vertex_count = 8;
+  uint vertex_count = 16;
   
   void generate_indices();
   void generate_vertices(float size, glm::vec3 colour);

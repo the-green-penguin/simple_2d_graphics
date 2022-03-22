@@ -115,4 +115,5 @@ public:
   void set_gobj_position(id id, glm::vec3 pos);
   void set_gobj_rotation(id id, float rot);
   void set_camera_position(glm::vec3 pos);
+  void set_camera_zoom(float zoom);
 };
