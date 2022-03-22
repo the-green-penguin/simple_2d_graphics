@@ -42,9 +42,7 @@ std::vector<id> obj;
 
 
 int main(int argc, char* argv[]){
-	
 	test();
-	
 	return 0;
 }
 
@@ -111,16 +109,21 @@ void create_gobjects(Window& window){
 void loop(Window& window){
 	
 	for(int i = 0; i < 100; i++){
+		// move triangle
 		window.set_gobj_position(
 			obj[0], glm::vec3(200.0f + i, 200.0f + i, 0.0f)
 		);
+		
+		// rotate circle
 		window.set_gobj_rotation(obj[3], i * 10);
 		
+		// adjust camera
 		window.set_camera_position(
 			glm::vec3(0.0f + i/2, 0.0f + i, 0.0f)
 		);
 		window.set_camera_zoom(1.0f + i * 0.01f);
 		
+		// delay
 		std::this_thread::sleep_for(10ms);
 	}
 }
