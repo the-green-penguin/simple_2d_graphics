@@ -85,7 +85,7 @@ void Shader_Program::set_uni(const std::string& name ,int x){
 
 
 //------------------------------------------------------------------------------
-void Shader_Program::set_uni(const std::string& name, unsigned int x){
+void Shader_Program::set_uni(const std::string& name, uint x){
   GLint uniform_location = glGetUniformLocation(shader_program, name.c_str());
   glUniform1ui(uniform_location, x);
 }
@@ -117,7 +117,7 @@ void Shader_Program::set_uni(const std::string& name ,int x, int y){
 
 
 //------------------------------------------------------------------------------
-void Shader_Program::set_uni(const std::string& name, unsigned int x, unsigned int y){
+void Shader_Program::set_uni(const std::string& name, uint x, uint y){
   GLint uniform_location = glGetUniformLocation(shader_program, name.c_str());
   glUniform2ui(uniform_location, x, y);
 }
@@ -149,7 +149,7 @@ void Shader_Program::set_uni(const std::string& name ,int x, int y, int z){
 
 
 //------------------------------------------------------------------------------
-void Shader_Program::set_uni(const std::string& name, unsigned int x, unsigned int y, unsigned int z){
+void Shader_Program::set_uni(const std::string& name, uint x, uint y, uint z){
   GLint uniform_location = glGetUniformLocation(shader_program, name.c_str());
   glUniform3ui(uniform_location, x, y, z);
 }
@@ -181,7 +181,7 @@ void Shader_Program::set_uni(const std::string& name ,int x, int y, int z, int w
 
 
 //------------------------------------------------------------------------------
-void Shader_Program::set_uni(const std::string& name, unsigned int x, unsigned int y, unsigned int z, unsigned int w){
+void Shader_Program::set_uni(const std::string& name, uint x, uint y, uint z, uint w){
   GLint uniform_location = glGetUniformLocation(shader_program, name.c_str());
   glUniform4ui(uniform_location, x, y, z, w);
 }

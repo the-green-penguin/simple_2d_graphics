@@ -73,7 +73,6 @@ GShape::GShape(
     this->rotation = rotation;
     this->vertices = vertices;
     this->indices = indices;
-    this->index_count = indices.size() * sizeof(Index3);
 }
 
 
@@ -112,6 +111,8 @@ void GShape::setup_buffers(){
   glGenBuffers(1, &element_buffer);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer_size, indices.data(), GL_STATIC_DRAW);
+  
+  index_count = indices.size() * 3;
   
   // cleanup
   vertices.clear();
@@ -176,17 +177,7 @@ GTriangle::GTriangle(glm::vec3 position, const std::vector<Vertex>& vertices)
 GTriangle::GTriangle(glm::vec3 position, float rotation, float size, glm::vec3 colour)
   : GShape(position, rotation, {}, {{}}){
     
-    // create equilateral triangle
-    float height = size * sqrt(3) / 2;
-    float third = 1.0f / 3.0f;
-    
-    vertices = {
-      {{ size / 2   , - third * height   , 0.0f}, colour},
-      {{ - size / 2 , - third * height   , 0.0f}, colour},
-      {{ 0.0f       , 2 * third * height , 0.0f}, colour},
-    };
-    
-    indices = tri_index;
+    generate_triangle(size, colour);
 }
 
 
@@ -206,6 +197,19 @@ GTriangle::~GTriangle(){}
 // GTriangle private
 ////////////////////////////////////////////////////////////////////////////////
 
+void GTriangle::generate_triangle(float size, glm::vec3 colour){
+  // create equilateral triangle
+  float height = size * sqrt(3) / 2;
+  float third = 1.0f / 3.0f;
+  
+  vertices = {
+    {{ size / 2   , - third * height   , 0.0f}, colour},
+    {{ - size / 2 , - third * height   , 0.0f}, colour},
+    {{ 0.0f       , 2 * third * height , 0.0f}, colour},
+  };
+  
+  indices = tri_index;
+}
 
 
 
@@ -234,16 +238,7 @@ GRect::GRect(glm::vec3 position, const std::vector<Vertex>& vertices)
 GRect::GRect(glm::vec3 position, float rotation, float size, glm::vec3 colour)
   : GShape(position, rotation, {}, {{}}){
     
-    float half = size / 2;
-    
-    vertices = {
-      {{ - half , - half, 0.0f}, colour},
-      {{ - half , half  , 0.0f}, colour},
-      {{ half   , - half, 0.0f}, colour},
-      {{ half   , half  , 0.0f}, colour}
-    };
-    
-    indices = rect_index;
+    generate_rect(size, colour);
 }
 
 
@@ -263,3 +258,85 @@ GRect::~GRect(){}
 // GRect private
 ////////////////////////////////////////////////////////////////////////////////
 
+void GRect::generate_rect(float size, glm::vec3 colour){
+  float half = size / 2;
+  
+  vertices = {
+    {{ - half , - half, 0.0f}, colour},
+    {{ - half , half  , 0.0f}, colour},
+    {{ half   , - half, 0.0f}, colour},
+    {{ half   , half  , 0.0f}, colour}
+  };
+  
+  indices = rect_index;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// GCircle public
+////////////////////////////////////////////////////////////////////////////////
+
+GCircle::GCircle(glm::vec3 position, float rotation, const std::vector<Vertex>& vertices, const std::vector<Index3>& indices)
+  : GShape(position, rotation, vertices, indices){
+    
+    if(vertices.size() != 4)
+      throw std::runtime_error("Could not create GCircle! (Invalid vertex count)");
+}
+
+
+
+//------------------------------------------------------------------------------
+GCircle::GCircle(glm::vec3 position, const std::vector<Vertex>& vertices, const std::vector<Index3>& indices)
+  : GCircle(position, 0.0f, vertices, indices){}   // set rotation to default
+
+
+
+//------------------------------------------------------------------------------
+GCircle::GCircle(glm::vec3 position, float rotation, float size, glm::vec3 colour)
+  : GShape(position, rotation, {}, {{}}){
+    
+    generate_indices();
+    generate_vertices(size, colour);
+}
+
+
+
+//------------------------------------------------------------------------------
+GCircle::GCircle(glm::vec3 position, float size, glm::vec3 colour)
+  : GCircle(position, 0.0f, size, colour){}   // set rotation to default
+
+
+
+//------------------------------------------------------------------------------
+GCircle::~GCircle(){}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// GCircle private
+////////////////////////////////////////////////////////////////////////////////
+
+void GCircle::generate_indices(){
+  indices.clear();
+    
+  for(uint i = vertex_count; i > 0; i--){
+    uint next = i % vertex_count + 1;
+    indices.push_back( {0, i, next} );
+  }
+}
+
+
+
+//------------------------------------------------------------------------------
+void GCircle::generate_vertices(float size, glm::vec3 colour){
+  float half = size / 2;
+  vertices.push_back( {{ 0.0f, 0.0f, 0.0f}, colour} );   // center
+  
+  for(uint i = 0; i < vertex_count; i++){
+    float segment = 360.0f * i / vertex_count;
+    float y = half * sin(segment * M_PI / 180);
+    float x = half * cos(segment * M_PI / 180);
+    vertices.push_back( {{x, y, 0.0f}, colour} );
+  }
+}

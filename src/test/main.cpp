@@ -25,6 +25,7 @@ SOFTWARE.
 */
 
 #include <iostream>
+#include <vector>
 
 #include "../window.h"
 
@@ -36,7 +37,7 @@ void test();
 void create_gobjects(Window& window);
 void loop(Window& window);
 
-id obj_1, obj_2, obj_3;
+std::vector<id> obj;
 
 
 
@@ -56,34 +57,50 @@ void test(){
 	
 	create_gobjects(window);
 	loop(window);
-	window.remove_gobject(obj_1);
+	///window.remove_gobject(obj[0]);
 }
 
 
 
 //------------------------------------------------------------------------------
 void create_gobjects(Window& window){
-	obj_1 = window.add_gobject(
-		std::make_shared<GTriangle>(
-			glm::vec3(200.0f, 200.0f, 0.0f),
-			50.0f,
-			glm::vec3(0.5f, 0.5f, 0.0f)
+	/*obj.push_back(
+		window.add_gobject(
+			std::make_shared<GTriangle>(
+				glm::vec3(200.0f, 200.0f, 0.0f),
+				50.0f,
+				glm::vec3(0.5f, 0.5f, 0.0f)
+			)
 		)
 	);
 	
-	obj_2 = window.add_gobject(
-		std::make_shared<GTriangle>(
-			glm::vec3(200.0f, 200.0f, 0.0f),
-			90.0f, 30.0f,
-			glm::vec3(0.25f, 0.25f, 0.7f)
+	obj.push_back(
+		window.add_gobject(
+			std::make_shared<GTriangle>(
+				glm::vec3(200.0f, 200.0f, 0.0f),
+				90.0f, 30.0f,
+				glm::vec3(0.25f, 0.25f, 0.7f)
+			)
 		)
 	);
 	
-	obj_3 = window.add_gobject(
-		std::make_shared<GRect>(
-			glm::vec3(200.0f, 200.0f, 0.0f),
-			0.0f, 30.0f,
-			glm::vec3(1.0f, 0.75f, 0.25f)
+	obj.push_back(
+		window.add_gobject(
+			std::make_shared<GRect>(
+				glm::vec3(200.0f, 200.0f, 0.0f),
+				0.0f, 30.0f,
+				glm::vec3(1.0f, 0.75f, 0.25f)
+			)
+		)
+	);*/
+	
+	obj.push_back(
+		window.add_gobject(
+			std::make_shared<GCircle>(
+				glm::vec3(100.0f, 100.0f, 0.0f),
+				0.0f, 50.0f,
+				glm::vec3(1.0f, 0.75f, 0.25f)
+			)
 		)
 	);
 }
@@ -94,14 +111,14 @@ void create_gobjects(Window& window){
 void loop(Window& window){
 	
 	for(int i = 0; i < 100; i++){
-		window.set_gobj_position(
-			obj_1, glm::vec3(200.0f + i, 200.0f + i, 0.0f)
-		);
-		window.set_gobj_rotation(obj_1, i);
+		///window.set_gobj_position(
+		///	obj[0], glm::vec3(200.0f + i, 200.0f + i, 0.0f)
+		///);
+		window.set_gobj_rotation(obj[0], i * 10);
 		
-		window.set_camera_position(
-			glm::vec3(0.0f + i/2, 0.0f + i, 0.0f)
-		);
+		///window.set_camera_position(
+		///	glm::vec3(0.0f + i/2, 0.0f + i, 0.0f)
+		///);
 		
 		std::this_thread::sleep_for(10ms);
 	}

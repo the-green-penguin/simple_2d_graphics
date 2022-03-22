@@ -48,9 +48,9 @@ struct Vertex{
 };
 
 struct Index3{
-  unsigned int a;
-  unsigned int b;
-  unsigned int c;
+  uint a;
+  uint b;
+  uint c;
 };
 
 
@@ -124,6 +124,8 @@ public:
   
 protected:
   std::vector<Index3> tri_index = {{0, 1, 2}};
+  
+  void generate_triangle(float size, glm::vec3 colour);
 };
 
 
@@ -155,4 +157,42 @@ public:
   
 protected:
   std::vector<Index3> rect_index = {{0, 1, 2}, {1, 2, 3}};
+  
+  void generate_rect(float size, glm::vec3 colour);
+};
+
+
+
+//------------------------------------------------------------------------------
+class GCircle: public GShape{
+public:
+  GCircle(
+    glm::vec3 position,
+    float rotation,
+    const std::vector<Vertex>& vertices,
+    const std::vector<Index3>& indices
+  );
+  GCircle(
+    glm::vec3 position,
+    const std::vector<Vertex>& vertices,
+    const std::vector<Index3>& indices
+  );
+  GCircle(
+    glm::vec3 position,
+    float rotation,
+    float size,
+    glm::vec3 colour
+  );
+  GCircle(
+    glm::vec3 position,
+    float size,
+    glm::vec3 colour
+  );
+  ~GCircle();
+  
+protected:
+  uint vertex_count = 8;
+  
+  void generate_indices();
+  void generate_vertices(float size, glm::vec3 colour);
 };

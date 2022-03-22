@@ -36,7 +36,7 @@ SOFTWARE.
 
 void glfw_error(int error, const char* description);
 ///void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length, const char *message, const void *userParam);
+void APIENTRY glDebugOutput(GLenum source, GLenum type, uint id, GLenum severity, GLsizei length, const char *message, const void *userParam);
 
 
 
