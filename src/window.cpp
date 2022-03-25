@@ -45,7 +45,7 @@ void APIENTRY glDebugOutput(GLenum source, GLenum type, uint id, GLenum severity
 ////////////////////////////////////////////////////////////////////////////////
 
 Window::Window(const std::string& window_name){
-  helper = make_shared< Window_Helper >(window_name);
+  helper = std::make_shared< Window_Helper >(window_name);
   graphics_objects = helper->graphics_objects;
   setup_ready = helper->setup_ready;
   
