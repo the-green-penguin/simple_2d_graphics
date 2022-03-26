@@ -22,49 +22,9 @@
 
 
 
-# compiler
-CC = g++
+DEPENDENCIES = -Wl,-Bdynamic -lGL -lglfw -lGLEW
+2D_LIB = -L../bin/ -Wl,-Bstatic -lsimple_2d 
+CFLAGS = -std=c++2a -fPIC -pthread -O3
 
-# library
-AR = ./bin/libsimple_2d.a
-
-# recursively find all .cpp files and get their '.o' name
-SRC = $(shell find ./src/ -type f -name '*.cpp')
-OBJ = $(patsubst %.cpp, %.o, $(SRC) )
-
-# flags
-CPP_V = -std=c++2a
-DEBUG_FLAGS = -g -Wall -Wextra -pedantic -fPIC -pthread -O0
-RELEASE_FLAGS = -fPIC -pthread -O3
-CFLAGS = $(DEBUG_FLAGS)
-
-# includes & libraries
-INC = 
-LIB = -lGL -lglfw -lGLEW
-
-# all flags
-FLAGS = $(INC) $(LIB) $(CFLAGS) $(CPP_V)
-
-
-
-# actual compilation
-# create static library
-all: $(OBJ)
-	ar -rvs $(AR) $(OBJ)
-
-# create object files
-./src/%.o: ./src/%.cpp
-	$(CC) -c $< -o $@ $(FLAGS)
-
-
-
-# input arguments for 'make'
-.PHONY: new clean release
-
-new: clean all
-
-clean:
-	rm -f $(OBJ) ./bin/*.exe
-
-release: CFLAGS = $(RELEASE_FLAGS)
-release: clean all
+all:
+	g++ src/main.cpp -o bin/example.exe $(2D_LIB) $(DEPENDENCIES) $(CFLAGS)

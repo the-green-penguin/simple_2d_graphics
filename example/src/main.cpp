@@ -27,7 +27,7 @@ SOFTWARE.
 #include <iostream>
 #include <vector>
 
-#include "../window.h"
+#include "../../src/window.h"
 
 using namespace std::chrono_literals;
 
