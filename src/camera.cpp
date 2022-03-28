@@ -71,8 +71,13 @@ void Camera::set_zoom(float zoom){
 
 //------------------------------------------------------------------------------
 void Camera::update(std::shared_ptr< Shader_Program > shader_program, float screen_width, float screen_height){
-  // camera position
   glm::mat4 camera = glm::mat4(1.0f);
+  
+  // screen center
+  glm::vec3 offset(screen_width / 2, screen_height / 2, 0.0f);
+  camera = glm::translate(camera, offset);
+  
+  // camera position
   camera = glm::translate(camera, position);
   shader_program->set_uni("view", camera);
   
@@ -82,8 +87,10 @@ void Camera::update(std::shared_ptr< Shader_Program > shader_program, float scre
     
   glm::mat4 projection = glm::mat4(1.0f);
   projection = glm::ortho(
-    0.0f, screen_width * zoom,
-    screen_height * zoom, 0.0f,
+    0.0f,
+    screen_width * zoom,
+    screen_height * zoom,
+    0.0f,
     -1.0f, 1.0f
   );
   shader_program->set_uni("projection", projection);

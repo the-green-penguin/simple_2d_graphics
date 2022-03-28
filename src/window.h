@@ -71,11 +71,16 @@ private:
   public:
     // these are accessed by another thread -> lock needed
     std::shared_ptr< sync_gobjects > graphics_objects;
+    sync_camera camera;
     std::shared_ptr< std::atomic< bool > > setup_ready
       = std::make_shared< std::atomic< bool > >(false);
     std::shared_ptr< std::atomic< bool > > closed
       = std::make_shared< std::atomic< bool > >(false);
-    sync_camera camera;
+    std::shared_ptr< std::atomic< bool > > allow_zoom
+      = std::make_shared< std::atomic< bool > >(false);
+    std::shared_ptr< std::atomic< bool > > allow_camera_movement
+      = std::make_shared< std::atomic< bool > >(false);
+    
     
     Window_Helper(const std::string& window_name);
     ~Window_Helper();
@@ -119,4 +124,6 @@ public:
   void set_camera_position(glm::vec3 pos);
   void set_camera_zoom(float zoom);
   bool got_closed();
+  void set_allow_zoom(bool b);
+  void set_allow_camera_movement(bool b);
 };

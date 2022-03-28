@@ -36,6 +36,7 @@ SOFTWARE.
 
 void glfw_error(int error, const char* description);
 ///void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void scroll_callback(GLFWwindow* window, double x_offset, double y_offset);
 void APIENTRY glDebugOutput(GLenum source, GLenum type, uint id, GLenum severity, GLsizei length, const char *message, const void *userParam);
 
 
@@ -134,6 +135,20 @@ bool Window::got_closed(){
 
 
 
+//------------------------------------------------------------------------------
+void Window::set_allow_zoom(bool b){
+  return helper->allow_zoom->store(b);
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::set_allow_camera_movement(bool b){
+  return helper->allow_camera_movement->store(b);
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Window private
 ////////////////////////////////////////////////////////////////////////////////
@@ -160,7 +175,7 @@ Window::Window_Helper::~Window_Helper(){}
 void Window::Window_Helper::run(){   // run as separate thread
   init();
   
-  while(!glfwWindowShouldClose(window)){  //"...ShouldClose()" requires "...PollEvents()"!
+  while( ! glfwWindowShouldClose(window)){  //"...ShouldClose()" requires "...PollEvents()"!
     render();   
     glfwPollEvents();
   }
@@ -209,7 +224,10 @@ void Window::Window_Helper::setup_glfw(){
     throw std::runtime_error("GLFW window creation failed!");
     
   glfwMakeContextCurrent(window);
+  
+  // set callbacks
   glfwSetErrorCallback(glfw_error);
+  glfwSetScrollCallback(window, scroll_callback);
 }
 
 
@@ -305,6 +323,13 @@ void glfw_error(int error, const char* description){
   message += std::to_string(error) + "] ";
   message += description;
   throw std::runtime_error(message);
+}
+
+
+
+//------------------------------------------------------------------------------
+void scroll_callback(GLFWwindow* window, double x_offset, double y_offset){
+  
 }
 
 
