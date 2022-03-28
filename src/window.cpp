@@ -127,6 +127,13 @@ void Window::set_gobj_rotation(id id, float rot){
 
 
 
+//------------------------------------------------------------------------------
+bool Window::got_closed(){
+  return helper->closed->load();
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Window private
 ////////////////////////////////////////////////////////////////////////////////
@@ -245,6 +252,7 @@ void Window::Window_Helper::setup_shader_program(){
 void Window::Window_Helper::stop(){
   glfwDestroyWindow(window);
   glfwTerminate();
+  closed->store(true);
 }
 
 

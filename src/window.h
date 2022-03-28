@@ -73,6 +73,8 @@ private:
     std::shared_ptr< sync_gobjects > graphics_objects;
     std::shared_ptr< std::atomic< bool > > setup_ready
       = std::make_shared< std::atomic< bool > >(false);
+    std::shared_ptr< std::atomic< bool > > closed
+      = std::make_shared< std::atomic< bool > >(false);
     sync_camera camera;
     
     Window_Helper(const std::string& window_name);
@@ -116,4 +118,5 @@ public:
   void set_gobj_rotation(id id, float rot);
   void set_camera_position(glm::vec3 pos);
   void set_camera_zoom(float zoom);
+  bool got_closed();
 };
