@@ -70,11 +70,20 @@ void Camera::set_zoom(float zoom){
 
 
 //------------------------------------------------------------------------------
+void Camera::mod_zoom(float zoom_diff){
+  float tmp = zoom + zoom_diff * zoom;   // make zooming feel more natural
+  if(tmp > 0.0f)
+    this->zoom = tmp;
+}
+
+
+
+//------------------------------------------------------------------------------
 void Camera::update(std::shared_ptr< Shader_Program > shader_program, float screen_width, float screen_height){
   glm::mat4 camera = glm::mat4(1.0f);
   
   // screen center
-  glm::vec3 offset(screen_width / 2, screen_height / 2, 0.0f);
+  glm::vec3 offset(screen_width * zoom / 2, screen_height * zoom / 2, 0.0f);
   camera = glm::translate(camera, offset);
   
   // camera position

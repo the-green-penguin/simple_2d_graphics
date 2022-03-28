@@ -46,7 +46,7 @@ void APIENTRY glDebugOutput(GLenum source, GLenum type, uint id, GLenum severity
 ////////////////////////////////////////////////////////////////////////////////
 
 Window::Window(const std::string& window_name){
-  helper = std::make_shared< Window_Helper >(window_name);
+  helper = std::make_shared< Window_Helper >(window_name, this);
   graphics_objects = helper->graphics_objects;
   setup_ready = helper->setup_ready;
   
@@ -113,6 +113,14 @@ void Window::set_camera_zoom(float zoom){
 
 
 //------------------------------------------------------------------------------
+void Window::mod_camera_zoom(float zoom_diff){
+  std::lock_guard<std::mutex> lg(helper->camera.lock);   // lock camera
+  helper->camera.data.mod_zoom(zoom_diff);
+}
+
+
+
+//------------------------------------------------------------------------------
 void Window::set_gobj_position(id id, glm::vec3 pos){
   std::lock_guard<std::mutex> lg(helper->graphics_objects->lock);   // lock map
   helper->graphics_objects->data.at(id)->set_position(pos);
@@ -159,7 +167,8 @@ void Window::set_allow_camera_movement(bool b){
 // Helper public
 ////////////////////////////////////////////////////////////////////////////////
 
-Window::Window_Helper::Window_Helper(const std::string& window_name){
+Window::Window_Helper::Window_Helper(const std::string& window_name, Window* parent){
+  this->parent = parent;
   this->window_name = window_name;
   this->graphics_objects = std::make_shared< sync_gobjects >();
 }
@@ -223,7 +232,9 @@ void Window::Window_Helper::setup_glfw(){
   if(!window)
     throw std::runtime_error("GLFW window creation failed!");
     
+  // 
   glfwMakeContextCurrent(window);
+  glfwSetWindowUserPointer(window, parent);
   
   // set callbacks
   glfwSetErrorCallback(glfw_error);
@@ -329,7 +340,8 @@ void glfw_error(int error, const char* description){
 
 //------------------------------------------------------------------------------
 void scroll_callback(GLFWwindow* window, double x_offset, double y_offset){
-  
+  auto win = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+  win->mod_camera_zoom( - y_offset * 0.1f);
 }
 
 

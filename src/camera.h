@@ -48,6 +48,7 @@ public:
   ~Camera();
   void set_position(glm::vec3 pos);
   void set_zoom(float zoom);
+  void mod_zoom(float zoom_diff);
   void update(
     std::shared_ptr< Shader_Program > shader_program,
     float screen_width,

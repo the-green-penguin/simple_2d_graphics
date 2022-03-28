@@ -82,11 +82,15 @@ private:
       = std::make_shared< std::atomic< bool > >(false);
     
     
-    Window_Helper(const std::string& window_name);
+    Window_Helper(
+      const std::string& window_name,
+      Window* parent
+    );
     ~Window_Helper();
     void run();
     
   private:
+    Window* parent;
     GLFWwindow* window;
     std::string window_name;
     int width, height;
@@ -123,6 +127,7 @@ public:
   void set_gobj_rotation(id id, float rot);
   void set_camera_position(glm::vec3 pos);
   void set_camera_zoom(float zoom);
+  void mod_camera_zoom(float zoom_diff);
   bool got_closed();
   void set_allow_zoom(bool b);
   void set_allow_camera_movement(bool b);
