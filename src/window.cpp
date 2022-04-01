@@ -136,21 +136,21 @@ void Window::set_gobj_rotation(id id, float rot){
 
 //------------------------------------------------------------------------------
 bool Window::got_closed(){
-  return helper->closed->load();
+  return helper->closed.load();
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::set_allow_zoom(bool b){
-  return helper->allow_zoom->store(b);
+  return helper->allow_zoom.store(b);
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::set_allow_camera_movement(bool b){
-  return helper->allow_camera_movement->store(b);
+  return helper->allow_camera_movement.store(b);
 }
 
 
@@ -279,7 +279,7 @@ void Window::Window_Helper::setup_shader_program(){
 void Window::Window_Helper::stop(){
   glfwDestroyWindow(window);
   glfwTerminate();
-  closed->store(true);
+  closed.store(true);
 }
 
 
