@@ -48,6 +48,8 @@ Window::Window(const std::string& window_name){
   helper = std::make_shared< Window_Helper >(window_name, this);
   setup_ready = helper->setup_ready;
   
+  set_background_colour( {0.0f, 0.0f, 0.0f} );
+  
   helper_thread = std::thread(&Window_Helper::run, helper);
 }
 
@@ -144,14 +146,22 @@ bool Window::got_closed(){
 
 //------------------------------------------------------------------------------
 void Window::set_allow_zoom(bool b){
-  return helper->allow_zoom.store(b);
+  helper->allow_zoom.store(b);
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::set_allow_camera_movement(bool b){
-  return helper->allow_camera_movement.store(b);
+  helper->allow_camera_movement.store(b);
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::set_background_colour(glm::vec3 colour){
+  std::lock_guard<std::mutex> lg(helper->background_colour.lock);   // lock vec3
+  helper->background_colour.data = colour;
 }
 
 
@@ -296,15 +306,14 @@ void Window::Window_Helper::render(){
   // delete old gobjects
   delete_old_gobjects();
   
-  // window size
+  // adjust window size
   glfwGetFramebufferSize(window, &width, &height);
   glViewport(0, 0, width, height);
   
   // clear screen
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
+  set_background();
   
-  // rendering content
+  // render content
   {
     std::lock_guard<std::mutex> lg(camera.lock);   // lock camera
     camera.data.update(shader_program, (float)width, (float)height);
@@ -313,6 +322,20 @@ void Window::Window_Helper::render(){
   
   // show content
   glfwSwapBuffers(window);
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Window_Helper::set_background(){
+  std::lock_guard<std::mutex> lg(background_colour.lock);   // lock vec3
+  glClearColor(
+    background_colour.data.x,
+    background_colour.data.y,
+    background_colour.data.z,
+    1.0f
+  );
+  glClear(GL_COLOR_BUFFER_BIT);
 }
 
 

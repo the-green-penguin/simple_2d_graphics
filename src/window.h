@@ -66,6 +66,11 @@ typedef struct{
   std::mutex lock;
 } sync_ids_to_delete;
 
+typedef struct{
+  glm::vec3 data;
+  std::mutex lock;
+} sync_background_colour;
+
 
 
 // .cpp contains non-member function!
@@ -84,7 +89,7 @@ private:
     std::atomic< bool > allow_zoom = false;
     std::atomic< bool > allow_camera_movement = false;
     std::atomic< bool > clear_gobjects = false;
-    
+    sync_background_colour background_colour;
     
     Window_Helper(
       const std::string& window_name,
@@ -107,6 +112,7 @@ private:
       void setup_shader_program();
     void stop();
     void render();
+      void set_background();
       void delete_old_gobjects();
       void render_gobjects();
   };
@@ -134,4 +140,5 @@ public:
   bool got_closed();
   void set_allow_zoom(bool b);
   void set_allow_camera_movement(bool b);
+  void set_background_colour(glm::vec3 colour);
 };
