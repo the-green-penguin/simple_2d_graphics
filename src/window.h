@@ -61,6 +61,11 @@ typedef struct{
   std::mutex lock;
 } sync_camera;
 
+typedef struct{
+  std::vector<id> data;
+  std::mutex lock;
+} sync_ids_to_delete;
+
 
 
 // .cpp contains non-member function!
@@ -70,13 +75,15 @@ private:
   class Window_Helper{
   public:
     // these are accessed by another thread -> lock needed
-    std::shared_ptr< sync_gobjects > graphics_objects;
+    sync_gobjects graphics_objects;
     sync_camera camera;
+    sync_ids_to_delete ids_to_delete;
     std::shared_ptr< std::atomic< bool > >  setup_ready
       = std::make_shared< std::atomic< bool > >(false);
     std::atomic< bool > closed = false;
     std::atomic< bool > allow_zoom = false;
     std::atomic< bool > allow_camera_movement = false;
+    std::atomic< bool > clear_gobjects = false;
     
     
     Window_Helper(
@@ -100,6 +107,7 @@ private:
       void setup_shader_program();
     void stop();
     void render();
+      void delete_old_gobjects();
       void render_gobjects();
   };
 ////////////////////////////////////////////////////////////////////////////////
