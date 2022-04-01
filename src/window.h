@@ -114,9 +114,7 @@ private:
   
   
   
-public:
-  std::shared_ptr< sync_gobjects > graphics_objects;
-  
+public:  
   Window(const std::string& window_name);
   ~Window();
   void wait_for_setup();

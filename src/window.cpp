@@ -35,7 +35,6 @@ SOFTWARE.
 
 
 void glfw_error(int error, const char* description);
-///void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void scroll_callback(GLFWwindow* window, double x_offset, double y_offset);
 void APIENTRY glDebugOutput(GLenum source, GLenum type, uint id, GLenum severity, GLsizei length, const char *message, const void *userParam);
 
@@ -47,7 +46,6 @@ void APIENTRY glDebugOutput(GLenum source, GLenum type, uint id, GLenum severity
 
 Window::Window(const std::string& window_name){
   helper = std::make_shared< Window_Helper >(window_name, this);
-  graphics_objects = helper->graphics_objects;
   setup_ready = helper->setup_ready;
   
   helper_thread = std::thread(&Window_Helper::run, helper);
