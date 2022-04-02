@@ -33,6 +33,7 @@ SOFTWARE.
 #include <mutex>
 #include <atomic>
 #include <unordered_map>
+#include <queue>
 
 ///#define GLFW_INCLUDE_NONE     // not needed/working on Ubuntu, etc.
 // #include <glad/gl.h>     // not needed/working on Ubuntu, etc.
@@ -62,7 +63,7 @@ typedef struct{
 } sync_camera;
 
 typedef struct{
-  std::vector<id> data;
+  std::queue<id> data;
   std::mutex lock;
 } sync_ids_to_delete;
 

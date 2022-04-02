@@ -84,7 +84,7 @@ void Window::remove_gobject(id id){
   ///std::lock_guard<std::mutex> lg(helper->graphics_objects.lock);   // lock map
   ///helper->graphics_objects.data.erase(id);
   std::lock_guard<std::mutex> lg(helper->ids_to_delete.lock);   // lock vector
-  helper->ids_to_delete.data.push_back(id);
+  helper->ids_to_delete.data.push(id);
 }
 
 
@@ -368,8 +368,10 @@ void Window::Window_Helper::delete_old_gobjects(){
     graphics_objects.data.clear();
   
   // delete by id
-  for(auto &id : ids_to_delete.data)
-    graphics_objects.data.erase(id);
+  while( ! ids_to_delete.data.empty()){
+    graphics_objects.data.erase( ids_to_delete.data.front() );
+    ids_to_delete.data.pop();
+  }
 }
 
 
