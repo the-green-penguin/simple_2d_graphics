@@ -71,6 +71,11 @@ typedef struct{
   std::mutex lock;
 } sync_background_colour;
 
+typedef struct{
+  std::string data;
+  std::mutex lock;
+} sync_name;
+
 
 
 // .cpp contains non-member function!
@@ -83,13 +88,13 @@ private:
     sync_gobjects graphics_objects;
     sync_camera camera;
     sync_ids_to_delete ids_to_delete;
-    std::shared_ptr< std::atomic< bool > >  setup_ready
-      = std::make_shared< std::atomic< bool > >(false);
+    std::atomic< bool > setup_ready = false;
     std::atomic< bool > closed = false;
     std::atomic< bool > allow_zoom = false;
     std::atomic< bool > allow_camera_movement = false;
     std::atomic< bool > clear_gobjects = false;
     sync_background_colour background_colour;
+    sync_name window_name;
     
     Window_Helper(
       const std::string& window_name,
@@ -101,7 +106,6 @@ private:
   private:
     Window* parent;
     GLFWwindow* window;
-    std::string window_name;
     int width, height;
     std::shared_ptr< Shader_Program > shader_program;
     
@@ -111,6 +115,7 @@ private:
       void setup_glfw_debugging();
       void setup_shader_program();
     void stop();
+    void update_name();
     void render();
       void set_background();
       void delete_old_gobjects();
@@ -120,7 +125,6 @@ private:
   
   std::shared_ptr< Window_Helper > helper;
   std::thread helper_thread;
-  std::shared_ptr< std::atomic< bool > > setup_ready;
   id next_id = 0;
   
   
@@ -141,4 +145,5 @@ public:
   void set_allow_zoom(bool b);
   void set_allow_camera_movement(bool b);
   void set_background_colour(glm::vec3 colour);
+  void set_window_name(const std::string& name);
 };

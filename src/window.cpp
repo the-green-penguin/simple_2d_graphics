@@ -46,7 +46,6 @@ void APIENTRY glDebugOutput(GLenum source, GLenum type, uint id, GLenum severity
 
 Window::Window(const std::string& window_name){
   helper = std::make_shared< Window_Helper >(window_name, this);
-  setup_ready = helper->setup_ready;
   
   set_background_colour( {0.0f, 0.0f, 0.0f} );
   
@@ -65,7 +64,7 @@ Window::~Window(){
 //------------------------------------------------------------------------------
 void Window::wait_for_setup(){
   using namespace std::chrono_literals;
-  while( ! setup_ready->load())
+  while( ! helper->setup_ready.load())
     std::this_thread::sleep_for(100ns);
 }
 
@@ -166,6 +165,14 @@ void Window::set_background_colour(glm::vec3 colour){
 
 
 
+//------------------------------------------------------------------------------
+void Window::set_window_name(const std::string& name){
+  std::lock_guard<std::mutex> lg(helper->window_name.lock);   // lock string
+  helper->window_name.data = name;
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Window private
 ////////////////////////////////////////////////////////////////////////////////
@@ -178,7 +185,8 @@ void Window::set_background_colour(glm::vec3 colour){
 
 Window::Window_Helper::Window_Helper(const std::string& window_name, Window* parent){
   this->parent = parent;
-  this->window_name = window_name;
+  std::lock_guard<std::mutex> lg(this->window_name.lock);   // lock string
+  this->window_name.data = window_name;
 }
 
 
@@ -193,6 +201,7 @@ void Window::Window_Helper::run(){   // run as separate thread
   init();
   
   while( ! glfwWindowShouldClose(window)){  //"...ShouldClose()" requires "...PollEvents()"!
+    update_name();
     render();   
     glfwPollEvents();
   }
@@ -218,7 +227,7 @@ void Window::Window_Helper::init(){
     throw std::runtime_error(error_message + e.what());
   }
   
-  setup_ready->store(true);
+  setup_ready.store(true);
 }
 
 
@@ -236,7 +245,8 @@ void Window::Window_Helper::setup_glfw(){
   // enable GLFW debugging
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);   // remove in "release"!
   
-  window = glfwCreateWindow(640, 480, window_name.c_str(), NULL, NULL);
+  std::lock_guard<std::mutex> lg(this->window_name.lock);   // lock string
+  window = glfwCreateWindow(640, 480, window_name.data.c_str(), NULL, NULL);
   if(!window)
     throw std::runtime_error("GLFW window creation failed!");
     
@@ -297,6 +307,14 @@ void Window::Window_Helper::stop(){
   
   // set signal
   closed.store(true);
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Window_Helper::update_name(){
+  std::lock_guard<std::mutex> lg(window_name.lock);   // lock string
+  glfwSetWindowTitle(window, window_name.data.c_str());
 }
 
 
