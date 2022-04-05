@@ -70,7 +70,7 @@ GShape::GShape(
   const std::vector<Index3>& indices)
   : GObject(position){
     
-    this->rotation = rotation;
+    this->rotation = fmod(rotation, 360.0f);
     this->vertices = vertices;
     this->indices = indices;
 }
@@ -133,7 +133,7 @@ void GShape::render(std::shared_ptr<Shader_Program> shader_program){
 
 
 //------------------------------------------------------------------------------
-void GShape::set_rotation(float rot){  this-> rotation = rot;  }
+void GShape::set_rotation(float rot){  this-> rotation = fmod(rot, 360.0f);  }
 
 
 
