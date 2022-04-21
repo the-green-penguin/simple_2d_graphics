@@ -50,41 +50,75 @@ SOFTWARE.
 
 
 
-typedef unsigned long long int id;   // if you call "add_gobject()" more than 2^64 times, it's your problem!
-
-typedef struct{
-  std::unordered_map< id, std::shared_ptr< GShape > > data;
-  std::mutex lock;
-} sync_gobjects;
-
-typedef struct{
-  Camera data;
-  std::mutex lock;
-} sync_camera;
-
-typedef struct{
-  std::queue<id> data;
-  std::mutex lock;
-} sync_ids_to_delete;
-
-typedef struct{
-  glm::vec3 data;
-  std::mutex lock;
-} sync_background_colour;
-
-typedef struct{
-  std::string data;
-  std::mutex lock;
-} sync_name;
-
-
-
 // .cpp contains non-member function!
-class Window{
+
+
+
+typedef unsigned long long int id;   // if you call "add_gobject()" or "open_window()" more than 2^64 times, it's your problem!
+
+
+
+class Window{   // outer Window class exposes only the API
+public:
+  Window() = delete;   // Window itself is not to be used explicitely
+  ~Window() = delete;   // Window itself is not to be used explicitely
+  
+  static id open_window();
+  static void close_window(id win_id);
+  static bool got_closed(id win_id);
+  ///id add_gobject(std::shared_ptr< GShape > gobject);
+  ///void remove_gobject(id id);
+  ///void clear_gobjects();
+  ///void set_gobj_position(id id, glm::vec3 pos);
+  ///void set_gobj_rotation(id id, float rot);
+  ///void set_camera_position(glm::vec3 pos);
+  ///void set_camera_zoom(float zoom);
+  ///void mod_camera_zoom(float zoom_diff);
+  ///void set_allow_zoom(bool b);
+  ///void set_allow_camera_movement(bool b);
+  ///void set_background_colour(glm::vec3 colour);
+  ///void set_window_name(const std::string& name);
+  
 private:
-////////////////////////////////////////////////////////////////////////////////
-  class Window_Helper{
+  // predeclare private classes
+  class Helper;
+  class Wrapper;
+  class Manager;
+  
+//------------------------------------------------------------------------------
+  // structs for thread synchronisation
+  typedef struct{
+    std::unordered_map< id, std::shared_ptr< GShape > > data;
+    std::mutex lock;
+  } sync_gobjects;
+
+  typedef struct{
+    Camera data;
+    std::mutex lock;
+  } sync_camera;
+
+  typedef struct{
+    std::queue<id> data;
+    std::mutex lock;
+  } sync_ids_to_delete;
+
+  typedef struct{
+    glm::vec3 data;
+    std::mutex lock;
+  } sync_background_colour;
+
+  typedef struct{
+    std::string data;
+    std::mutex lock;
+  } sync_name;
+  
+//------------------------------------------------------------------------------
+  // helper class (actual internal data)
+  class Helper{
   public:
+    Helper(Wrapper* parent);
+    ~Helper();
+    
     // these are accessed by another thread -> lock needed
     sync_gobjects graphics_objects;
     sync_camera camera;
@@ -97,54 +131,40 @@ private:
     sync_background_colour background_colour;
     sync_name window_name;
     
-    Window_Helper(
-      const std::string& window_name,
-      Window* parent
-    );
-    ~Window_Helper();
-    void run();
-    
   private:
-    Window* parent;
+    Wrapper* parent;
     GLFWwindow* window;
     int width, height;
     std::shared_ptr< Shader_Program > shader_program;
-    
-    void init();
-      void setup_glfw();
-      void setup_glew();
-      void setup_glfw_debugging();
-      void setup_shader_program();
-    void stop();
-    void update_name();
-    void render();
-      void set_background();
-      void delete_old_gobjects();
-      void render_gobjects();
   };
-////////////////////////////////////////////////////////////////////////////////
   
-  std::shared_ptr< Window_Helper > helper;
-  std::thread helper_thread;
-  id next_id = 0;
+//------------------------------------------------------------------------------
+  // wrapper handling API calls (API <-> Helper)
+  class Wrapper{
+  public:
+    Wrapper();
+    ~Wrapper();
+    
+  private:
+    std::shared_ptr< Helper > helper;
+    id next_gobj_id = 0;
+  };
   
-  
-  
-public:  
-  Window(const std::string& window_name);
-  ~Window();
-  void wait_for_setup();
-  id add_gobject(std::shared_ptr< GShape > gobject);
-  void remove_gobject(id id);
-  void clear_gobjects();
-  void set_gobj_position(id id, glm::vec3 pos);
-  void set_gobj_rotation(id id, float rot);
-  void set_camera_position(glm::vec3 pos);
-  void set_camera_zoom(float zoom);
-  void mod_camera_zoom(float zoom_diff);
-  bool got_closed();
-  void set_allow_zoom(bool b);
-  void set_allow_camera_movement(bool b);
-  void set_background_colour(glm::vec3 colour);
-  void set_window_name(const std::string& name);
+//------------------------------------------------------------------------------
+  // window manager (Meyer's singleton), handles separate thread
+  class Manager{    
+  public:
+    static Manager& get_instance();
+    id add_window();
+    
+  private:
+    Manager();
+    ~Manager();
+    Manager(const Manager&) = delete;   // prevents creation of copies
+    Manager& operator=(const Manager&) = delete;   // prevents creation of copies
+
+    id next_win_id = 0;
+    std::thread graphics_thread;
+    std::unordered_map< id, std::shared_ptr< Wrapper > > windows;
+  };
 };

@@ -33,21 +33,24 @@ using namespace std::chrono_literals;
 
 
 
-void test();
-void create_gobjects(Window& window);
-void loop(Window& window);
-
-std::vector<id> obj;
+///void test();
+///void create_gobjects(Window& window);
+///void loop(Window& window);
+///
+///std::vector<id> obj;
 
 
 
 int main(int argc, char* argv[]){
-	test();
+	
+	id win_0 = Window::open_window();
+	id win_1 = Window::open_window();
+	
 	return 0;
 }
 
 
-
+/*
 //------------------------------------------------------------------------------
 void test(){
 	Window window("Test");
@@ -127,3 +130,4 @@ void loop(Window& window){
 		std::this_thread::sleep_for(10ms);
 	}
 }
+*/
