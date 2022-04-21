@@ -78,6 +78,9 @@ bool Window::got_closed(id win_id){
 Window::Helper::Helper(Window::Wrapper* parent){
   std::cout << "Init Helper\n";
   this->parent = parent;
+  
+  create_glfw_window();
+  enable_gl_debugging();
 }
 
 
@@ -85,13 +88,64 @@ Window::Helper::Helper(Window::Wrapper* parent){
 //------------------------------------------------------------------------------
 Window::Helper::~Helper(){
   std::cout << "End Helper\n";
+  glfwDestroyWindow(window);
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Helper private
+// Helper private (main thread)
 ////////////////////////////////////////////////////////////////////////////////
+
+void Window::Helper::create_glfw_window(){
+  // create window
+  std::lock_guard<std::mutex> lg(this->window_name.lock);   // lock string
+  window = glfwCreateWindow(640, 480, window_name.data.c_str(), NULL, NULL);
+  if( ! window)
+    throw std::runtime_error("GLFW window creation failed!");
+    
+  // set callbacks / user_pointers
+  change_context(window);
+  
+  glfwSetWindowUserPointer(window, parent);
+  glfwSetErrorCallback(glfw_error);
+  glfwSetScrollCallback(window, scroll_callback);
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Helper::change_context(GLFWwindow* window){
+  glfwMakeContextCurrent(window);
+  load_gl_functions();
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Helper::load_gl_functions(){
+  GLenum err = glewInit();   // needs to be called after every context change!
+  if(err != GLEW_OK){
+    std::string message = "glewInit() returned: '";
+    message += reinterpret_cast<const char*>( glewGetErrorString(err) );   // fix incompatible "string" types
+    message += "'\n";
+    throw std::runtime_error("GLEW initialization failed! " + message);
+  }
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Helper::enable_gl_debugging(){
+  int flags;
+  glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+  if(flags & GL_CONTEXT_FLAG_DEBUG_BIT){   // check if debug flag was set -> configure debugging
+    glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    ///glDebugMessageCallback(glDebugOutput, nullptr);   // function defined below
+    ///glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+  }
+}
 
 
 
@@ -148,6 +202,7 @@ id Window::Manager::add_window(){
 
 Window::Manager::Manager(){
   std::cout << "Init Manager\n";
+  init();
 }
 
 
@@ -155,6 +210,24 @@ Window::Manager::Manager(){
 //------------------------------------------------------------------------------
 Window::Manager::~Manager(){
   std::cout << "End Manager\n";
+  windows.clear();
+  glfwTerminate();
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::init(){
+  if( ! glfwInit())
+    throw std::runtime_error("GLFW initialization failed!");
+  
+  // use OpenGL version 3.3 core  
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  
+  // enable GLFW debugging
+  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);   // remove in "release"!
 }
 
 

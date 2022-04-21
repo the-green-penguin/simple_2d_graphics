@@ -136,6 +136,11 @@ private:
     GLFWwindow* window;
     int width, height;
     std::shared_ptr< Shader_Program > shader_program;
+    
+    void create_glfw_window();
+    void change_context(GLFWwindow* window);
+      void load_gl_functions();
+    void enable_gl_debugging();
   };
   
 //------------------------------------------------------------------------------
@@ -158,10 +163,14 @@ private:
     id add_window();
     
   private:
+    // Meyer's singleton
     Manager();
     ~Manager();
     Manager(const Manager&) = delete;   // prevents creation of copies
     Manager& operator=(const Manager&) = delete;   // prevents creation of copies
+    
+    // "actual" private members
+    void init();
 
     id next_win_id = 0;
     std::thread graphics_thread;

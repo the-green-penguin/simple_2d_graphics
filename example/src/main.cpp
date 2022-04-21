@@ -46,6 +46,8 @@ int main(int argc, char* argv[]){
 	id win_0 = Window::open_window();
 	id win_1 = Window::open_window();
 	
+	std::this_thread::sleep_for(10s);
+	
 	return 0;
 }
 
