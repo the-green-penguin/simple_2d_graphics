@@ -44,16 +44,16 @@ void APIENTRY glDebugOutput(GLenum source, GLenum type, uint id, GLenum severity
 // Window public
 ////////////////////////////////////////////////////////////////////////////////
 
-id Window::open_window(){
-  id new_win_id = Manager::get_instance().add_window();
+id Window::open(){
+  id new_win_id = Manager::get_instance().add_win();
   return new_win_id;
 }
 
 
 
 //------------------------------------------------------------------------------
-void Window::close_window(id win_id){
-  Manager::get_instance().close_window(win_id);
+void Window::close(id win_id){
+  Manager::get_instance().close_win(win_id);
 }
 
 
@@ -61,6 +61,13 @@ void Window::close_window(id win_id){
 //------------------------------------------------------------------------------
 bool Window::got_closed(id win_id){
   return Manager::get_instance().win_got_closed(win_id);
+}
+
+
+
+//------------------------------------------------------------------------------
+std::size_t Window::count(){
+  return Manager::get_instance().get_count();
 }
 
 
@@ -389,7 +396,7 @@ Window::Manager& Window::Manager::get_instance(){
 
 
 //------------------------------------------------------------------------------
-id Window::Manager::add_window(){
+id Window::Manager::add_win(){
   windows.insert({
     next_win_id,
     std::make_shared< Wrapper >()
@@ -401,7 +408,7 @@ id Window::Manager::add_window(){
 
 
 //------------------------------------------------------------------------------
-void Window::Manager::close_window(id id){
+void Window::Manager::close_win(id id){
   windows.at(id)->helper->should_close.store(true);
 }
 
@@ -410,6 +417,13 @@ void Window::Manager::close_window(id id){
 //------------------------------------------------------------------------------
 bool Window::Manager::win_got_closed(id id){
   return ( ! windows.contains(id));
+}
+
+
+
+//------------------------------------------------------------------------------
+std::size_t Window::Manager::get_count(){
+  return windows.size();
 }
 
 

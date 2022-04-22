@@ -54,7 +54,7 @@ SOFTWARE.
 
 
 
-typedef unsigned long long int id;   // if you call "add_gobject()" or "open_window()" more than 2^64 times, it's your problem!
+typedef unsigned long long int id;   // if you call "add_gobject()" or "open()" more than 2^64 times, it's your problem!
 
 
 
@@ -63,9 +63,10 @@ public:
   Window() = delete;   // Window itself is not to be used explicitely
   ~Window() = delete;   // Window itself is not to be used explicitely
   
-  static id open_window();
-  static void close_window(id win_id);
+  static id open();
+  static void close(id win_id);
   static bool got_closed(id win_id);
+  static std::size_t count();
   static id add_gobject(id win_id, std::shared_ptr< GShape > gobject);
   static void remove_gobject(id win_id, id gobj_id);
   static void clear_gobjects(id win_id);
@@ -182,9 +183,10 @@ private:
   class Manager{    
   public:
     static Manager& get_instance();
-    id add_window();
-    void close_window(id id);
+    id add_win();
+    void close_win(id id);
     bool win_got_closed(id id);
+    std::size_t get_count();
     
   private:
     // Meyer's singleton

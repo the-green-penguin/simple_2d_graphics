@@ -43,15 +43,11 @@ using namespace std::chrono_literals;
 
 int main(int argc, char* argv[]){
 	
-	id win_0 = Window::open_window();
-	id win_1 = Window::open_window();
+	id win_0 = Window::open();
+	id win_1 = Window::open();
 	
-	while(true){
-		if( Window::got_closed(win_0) && Window::got_closed(win_1) )
-			break;
-			
+	while( Window::count() != 0)
 		std::this_thread::sleep_for(10ms);
-	}
 	
 	return 0;
 }
