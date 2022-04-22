@@ -142,8 +142,14 @@ private:
     void change_context(GLFWwindow* window);   // used by both threads
       void load_gl_functions();
     void enable_gl_debugging();
+    void setup_shader_program();
     
     void exe_update();   // graphics thread
+    void update_name();   // graphics thread
+    void render();   // graphics thread
+    void set_background();   // graphics thread
+    void delete_old_gobjects();   // graphics thread
+    void render_gobjects();   // graphics thread
   };
   
 //------------------------------------------------------------------------------
@@ -152,6 +158,18 @@ private:
   public:
     Wrapper();
     ~Wrapper();
+    id add_gobject(std::shared_ptr< GShape > gobject);
+    void remove_gobject(id id);
+    void clear_gobjects();
+    void set_gobj_position(id id, glm::vec3 pos);
+    void set_gobj_rotation(id id, float rot);
+    void set_camera_position(glm::vec3 pos);
+    void set_camera_zoom(float zoom);
+    void mod_camera_zoom(float zoom_diff);
+    void set_allow_zoom(bool b);
+    void set_allow_camera_movement(bool b);
+    void set_background_colour(glm::vec3 colour);
+    void set_window_name(const std::string& name);
     
     std::shared_ptr< Helper > helper;
     
