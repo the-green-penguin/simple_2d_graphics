@@ -53,14 +53,14 @@ id Window::open_window(){
 
 //------------------------------------------------------------------------------
 void Window::close_window(id win_id){
-  
+  Manager::get_instance().close_window(win_id);
 }
 
 
 
 //------------------------------------------------------------------------------
 bool Window::got_closed(id win_id){
-  
+  return Manager::get_instance().win_got_closed(win_id);
 }
 
 
@@ -396,6 +396,20 @@ id Window::Manager::add_window(){
   });
   
   return next_win_id++;
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::close_window(id id){
+  windows.at(id)->helper->should_close.store(true);
+}
+
+
+
+//------------------------------------------------------------------------------
+bool Window::Manager::win_got_closed(id id){
+  return ( ! windows.contains(id));
 }
 
 

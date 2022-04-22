@@ -66,18 +66,18 @@ public:
   static id open_window();
   static void close_window(id win_id);
   static bool got_closed(id win_id);
-  ///id add_gobject(std::shared_ptr< GShape > gobject);
-  ///void remove_gobject(id id);
-  ///void clear_gobjects();
-  ///void set_gobj_position(id id, glm::vec3 pos);
-  ///void set_gobj_rotation(id id, float rot);
-  ///void set_camera_position(glm::vec3 pos);
-  ///void set_camera_zoom(float zoom);
-  ///void mod_camera_zoom(float zoom_diff);
-  ///void set_allow_zoom(bool b);
-  ///void set_allow_camera_movement(bool b);
-  ///void set_background_colour(glm::vec3 colour);
-  ///void set_window_name(const std::string& name);
+  static id add_gobject(id win_id, std::shared_ptr< GShape > gobject);
+  static void remove_gobject(id win_id, id gobj_id);
+  static void clear_gobjects(id win_id);
+  static void set_gobj_position(id win_id, id gobj_id, glm::vec3 pos);
+  static void set_gobj_rotation(id win_id, id gobj_id, float rot);
+  static void set_camera_position(id win_id, glm::vec3 pos);
+  static void set_camera_zoom(id win_id, float zoom);
+  static void mod_camera_zoom(id win_id, float zoom_diff);
+  static void set_allow_zoom(id win_id, bool b);
+  static void set_allow_camera_movement(id win_id, bool b);
+  static void set_background_colour(id win_id, glm::vec3 colour);
+  static void set_window_name(id win_id, const std::string& name);
   
 private:
   // predeclare private classes
@@ -183,6 +183,8 @@ private:
   public:
     static Manager& get_instance();
     id add_window();
+    void close_window(id id);
+    bool win_got_closed(id id);
     
   private:
     // Meyer's singleton
