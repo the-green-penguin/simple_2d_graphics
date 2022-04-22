@@ -118,12 +118,13 @@ private:
   public:
     Helper(Wrapper* parent);
     ~Helper();
+    void update();
     
-    // these are accessed by another thread -> lock needed
+    // these are accessed by two threads -> lock needed
     sync_gobjects graphics_objects;
     sync_camera camera;
     sync_ids_to_delete ids_to_delete;
-    std::atomic< bool > setup_ready = false;
+    std::atomic< bool > should_close = false;
     std::atomic< bool > closed = false;
     std::atomic< bool > allow_zoom = false;
     std::atomic< bool > allow_camera_movement = false;
@@ -138,9 +139,11 @@ private:
     std::shared_ptr< Shader_Program > shader_program;
     
     void create_glfw_window();
-    void change_context(GLFWwindow* window);
+    void change_context(GLFWwindow* window);   // used by both threads
       void load_gl_functions();
     void enable_gl_debugging();
+    
+    void exe_update();   // graphics thread
   };
   
 //------------------------------------------------------------------------------
@@ -150,8 +153,9 @@ private:
     Wrapper();
     ~Wrapper();
     
-  private:
     std::shared_ptr< Helper > helper;
+    
+  private:
     id next_gobj_id = 0;
   };
   
@@ -170,10 +174,13 @@ private:
     Manager& operator=(const Manager&) = delete;   // prevents creation of copies
     
     // "actual" private members
-    void init();
+    void init_glfw();
+    void thread_func();   // graphics thread
+    void remove_closed_windows();   // graphics thread
 
     id next_win_id = 0;
     std::thread graphics_thread;
+    std::atomic< bool > stop_thread = false;
     std::unordered_map< id, std::shared_ptr< Wrapper > > windows;
   };
 };

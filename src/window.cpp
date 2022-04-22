@@ -93,6 +93,17 @@ Window::Helper::~Helper(){
 
 
 
+//------------------------------------------------------------------------------
+void Window::Helper::update(){
+  if( glfwWindowShouldClose(window) )
+    should_close.store(true);
+    
+  else
+    exe_update();
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Helper private (main thread)
 ////////////////////////////////////////////////////////////////////////////////
@@ -145,6 +156,13 @@ void Window::Helper::enable_gl_debugging(){
     ///glDebugMessageCallback(glDebugOutput, nullptr);   // function defined below
     ///glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
   }
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Helper::exe_update(){
+  
 }
 
 
@@ -202,7 +220,8 @@ id Window::Manager::add_window(){
 
 Window::Manager::Manager(){
   std::cout << "Init Manager\n";
-  init();
+  init_glfw();
+  graphics_thread = std::thread(&Window::Manager::thread_func, this);
 }
 
 
@@ -210,6 +229,8 @@ Window::Manager::Manager(){
 //------------------------------------------------------------------------------
 Window::Manager::~Manager(){
   std::cout << "End Manager\n";
+  stop_thread.store(true);
+  graphics_thread.join();
   windows.clear();
   glfwTerminate();
 }
@@ -217,7 +238,7 @@ Window::Manager::~Manager(){
 
 
 //------------------------------------------------------------------------------
-void Window::Manager::init(){
+void Window::Manager::init_glfw(){
   if( ! glfwInit())
     throw std::runtime_error("GLFW initialization failed!");
   
@@ -228,6 +249,37 @@ void Window::Manager::init(){
   
   // enable GLFW debugging
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);   // remove in "release"!
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::thread_func(){
+  std::cout << "start thread\n";
+  while( ! stop_thread.load() ){
+    
+    glfwPollEvents();
+    for(auto &w : windows)
+      w.second->helper->update();
+    
+    remove_closed_windows();
+    
+    using namespace std::chrono_literals;
+    std::this_thread::sleep_for(10ms);
+  }
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::remove_closed_windows(){
+  std::erase_if(
+    windows,   // container
+    [](const auto& item){
+      auto const& [key, value] = item;
+      return value->helper->should_close.load();   // condition for removal
+    }
+  );
 }
 
 
