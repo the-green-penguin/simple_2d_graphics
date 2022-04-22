@@ -82,7 +82,6 @@ public:
   
 private:
   // predeclare private classes
-  class Helper;
   class Wrapper;
   class Manager;
   
@@ -112,13 +111,18 @@ private:
     std::string data;
     std::mutex lock;
   } sync_name;
+
+  typedef struct{
+    std::unordered_map< id, std::shared_ptr< Wrapper > > data;
+    std::mutex lock;
+  } sync_windows;
   
 //------------------------------------------------------------------------------
   // helper class (actual internal data)
-  class Helper{
+  class Wrapper{
   public:
-    Helper(Wrapper* parent);
-    ~Helper();
+    Wrapper();
+    ~Wrapper();
     void update();
     
     // these are accessed by two threads -> lock needed
@@ -132,9 +136,9 @@ private:
     std::atomic< bool > clear_gobjects = false;
     sync_background_colour background_colour;
     sync_name window_name;
+    std::atomic< id > next_gobj_id = 0;
     
   private:
-    Wrapper* parent;
     GLFWwindow* window;
     int width, height;
     std::shared_ptr< Shader_Program > shader_program;
@@ -151,31 +155,6 @@ private:
     void set_background();   // graphics thread
     void delete_old_gobjects();   // graphics thread
     void render_gobjects();   // graphics thread
-  };
-  
-//------------------------------------------------------------------------------
-  // wrapper handling API calls (API <-> Helper)
-  class Wrapper{
-  public:
-    Wrapper();
-    ~Wrapper();
-    id add_gobject(std::shared_ptr< GShape > gobject);
-    void remove_gobject(id id);
-    void clear_gobjects();
-    void set_gobj_position(id id, glm::vec3 pos);
-    void set_gobj_rotation(id id, float rot);
-    void set_camera_position(glm::vec3 pos);
-    void set_camera_zoom(float zoom);
-    void mod_camera_zoom(float zoom_diff);
-    void set_allow_zoom(bool b);
-    void set_allow_camera_movement(bool b);
-    void set_background_colour(glm::vec3 colour);
-    void set_window_name(const std::string& name);
-    
-    std::shared_ptr< Helper > helper;
-    
-  private:
-    id next_gobj_id = 0;
   };
   
 //------------------------------------------------------------------------------
@@ -203,6 +182,6 @@ private:
     id next_win_id = 0;
     std::thread graphics_thread;
     std::atomic< bool > stop_thread = false;
-    std::unordered_map< id, std::shared_ptr< Wrapper > > windows;
+    sync_windows windows;
   };
 };
