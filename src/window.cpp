@@ -209,26 +209,18 @@ void Window::Wrapper::update(){
 ////////////////////////////////////////////////////////////////////////////////
 
 void Window::Wrapper::create_glfw_window(){
-  // create window
+  
   std::lock_guard<std::mutex> lg(this->window_name.lock);   // lock string
   window = glfwCreateWindow(640, 480, window_name.data.c_str(), NULL, NULL);
   if( ! window)
     throw std::runtime_error("GLFW window creation failed!");
     
-  // set callbacks / user_pointers
-  change_context(window);
+  glfwMakeContextCurrent(window);
+  load_gl_functions();
   
   ///glfwSetWindowUserPointer(window, parent);
   glfwSetErrorCallback(glfw_error);
   glfwSetScrollCallback(window, scroll_callback);
-}
-
-
-
-//------------------------------------------------------------------------------
-void Window::Wrapper::change_context(GLFWwindow* window){
-  glfwMakeContextCurrent(window);
-  load_gl_functions();
 }
 
 
@@ -270,8 +262,8 @@ void Window::Wrapper::setup_shader_program(){
 
 //------------------------------------------------------------------------------
 void Window::Wrapper::exe_update(){
-  change_context(window);
-  update_name();
+  glfwMakeContextCurrent(window);
+  ///update_name();
   render();
 }
 

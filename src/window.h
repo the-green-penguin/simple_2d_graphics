@@ -144,8 +144,7 @@ private:
     std::shared_ptr< Shader_Program > shader_program;
     
     void create_glfw_window();
-    void change_context(GLFWwindow* window);   // used by both threads
-      void load_gl_functions();
+    void load_gl_functions();
     void enable_gl_debugging();
     void setup_shader_program();
     
