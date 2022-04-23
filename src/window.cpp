@@ -223,7 +223,9 @@ void Window::set_window_name(id win_id, const std::string& name){
 // Wrapper public
 ////////////////////////////////////////////////////////////////////////////////
 
-Window::Wrapper::Wrapper(){
+Window::Wrapper::Wrapper(id w_id){
+  this->w_id = w_id;
+  
   create_glfw_window();
   enable_gl_debugging();
   setup_shader_program();
@@ -263,7 +265,7 @@ void Window::Wrapper::create_glfw_window(){
   glfwMakeContextCurrent(window);
   load_gl_functions();
   
-  ///glfwSetWindowUserPointer(window, parent);
+  glfwSetWindowUserPointer(window, (void*)w_id);   // try storing window_id as "pointer" (hacky!!!)
   glfwSetErrorCallback(glfw_error);
   glfwSetScrollCallback(window, scroll_callback);
 }
@@ -414,7 +416,7 @@ id Window::Manager::add_win(){
   std::lock_guard<std::mutex> lg(windows.lock);
   windows.data.insert({
     next_win_id,
-    std::make_shared< Wrapper >()
+    std::make_shared< Wrapper >(next_win_id)
   });
   
   return next_win_id++;
@@ -559,8 +561,8 @@ void glfw_error(int error, const char* description){
 
 //------------------------------------------------------------------------------
 void scroll_callback(GLFWwindow* window, double x_offset, double y_offset){
-  ///auto wrapper = reinterpret_cast< Window::Wrapper* >( glfwGetWindowUserPointer(window) );
-  ///wrapper->mod_camera_zoom( - y_offset * 0.1f);
+  auto win_id = (id) glfwGetWindowUserPointer(window);
+  Window::mod_camera_zoom(win_id, - y_offset * 0.1f);
 }
 
 

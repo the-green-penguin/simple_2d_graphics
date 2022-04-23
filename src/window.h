@@ -106,12 +106,12 @@ private:
   } sync_ids_to_delete;
 
   typedef struct{
-    glm::vec3 data;
+    glm::vec3 data = {0.0f, 0.0f, 0.0f};
     std::mutex lock;
   } sync_background_colour;
 
   typedef struct{
-    std::string data;
+    std::string data = "";
     bool has_update = false;
     std::mutex lock;
   } sync_name;
@@ -125,7 +125,7 @@ private:
   // helper class (actual internal data)
   class Wrapper{
   public:
-    Wrapper();
+    Wrapper(id w_id);
     ~Wrapper();
     void update();
     
@@ -143,6 +143,7 @@ private:
     std::atomic< id > next_gobj_id = 0;
     
   private:
+    id w_id;
     GLFWwindow* window;
     int width, height;
     std::shared_ptr< Shader_Program > shader_program;
