@@ -33,43 +33,44 @@ using namespace std::chrono_literals;
 
 
 
-///void test();
-///void create_gobjects(Window& window);
-///void loop(Window& window);
-///
-///std::vector<id> obj;
+void test();
+void create_gobjects();
+void loop();
+
+std::vector<id> windows;
+std::vector<id> objects;
 
 
 
 int main(int argc, char* argv[]){
 	
-	id win_0 = Window::open();
-	id win_1 = Window::open();
+	test();
 	
-	while( Window::count() != 0)
+	// keep running until windows are closed
+	while(Window::count() != 0)
 		std::this_thread::sleep_for(10ms);
 	
 	return 0;
 }
 
 
-/*
+
 //------------------------------------------------------------------------------
 void test(){
-	Window window("Test");
-	window.wait_for_setup();   // optional
+	windows.push_back( Window::open("Test") );
+	windows.push_back( Window::open() );
 	
-	create_gobjects(window);
-	loop(window);
-	window.remove_gobject(obj[0]);
+	create_gobjects();
+	loop();
 }
 
 
 
 //------------------------------------------------------------------------------
-void create_gobjects(Window& window){
-	obj.push_back(
-		window.add_gobject(
+void create_gobjects(){
+	objects.push_back(
+		Window::add_gobject(
+			windows[0],
 			std::make_shared<GTriangle>(
 				glm::vec3(200.0f, 200.0f, 0.0f),
 				50.0f,
@@ -78,8 +79,9 @@ void create_gobjects(Window& window){
 		)
 	);
 	
-	obj.push_back(
-		window.add_gobject(
+	objects.push_back(
+		Window::add_gobject(
+			windows[0],
 			std::make_shared<GTriangle>(
 				glm::vec3(200.0f, 200.0f, 0.0f),
 				90.0f, 30.0f,
@@ -88,8 +90,9 @@ void create_gobjects(Window& window){
 		)
 	);
 	
-	obj.push_back(
-		window.add_gobject(
+	objects.push_back(
+		Window::add_gobject(
+			windows[0],
 			std::make_shared<GRect>(
 				glm::vec3(200.0f, 200.0f, 0.0f),
 				0.0f, 30.0f,
@@ -98,8 +101,9 @@ void create_gobjects(Window& window){
 		)
 	);
 	
-	obj.push_back(
-		window.add_gobject(
+	objects.push_back(
+		Window::add_gobject(
+			windows[0],
 			std::make_shared<GCircle>(
 				glm::vec3(100.0f, 100.0f, 0.0f),
 				0.0f, 100.0f,
@@ -112,25 +116,34 @@ void create_gobjects(Window& window){
 
 
 //------------------------------------------------------------------------------
-void loop(Window& window){
+void loop(){
 	
 	for(int i = 0; i < 100; i++){
 		// move triangle
-		window.set_gobj_position(
-			obj[0], glm::vec3(200.0f + i, 200.0f + i, 0.0f)
+		Window::set_gobj_position(
+			windows[0],
+			objects[0],
+			glm::vec3(200.0f + i, 200.0f + i, 0.0f)
 		);
 		
 		// rotate circle
-		window.set_gobj_rotation(obj[3], i * 10);
+		Window::set_gobj_rotation(
+			windows[0],
+			objects[3],
+			i * 10
+		);
 		
 		// adjust camera
-		window.set_camera_position(
+		Window::set_camera_position(
+			windows[0],
 			glm::vec3(0.0f + i/2, 0.0f + i, 0.0f)
 		);
-		window.set_camera_zoom(1.0f + i * 0.01f);
+		Window::set_camera_zoom(
+			windows[0],
+			1.0f + i * 0.01f
+		);
 		
 		// delay
 		std::this_thread::sleep_for(10ms);
 	}
 }
-*/

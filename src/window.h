@@ -66,6 +66,7 @@ public:
   ~Window() = delete;   // Window itself is not to be used explicitely
   
   static id open();
+  static id open(const std::string& name);
   static void close(id win_id);
   static bool got_closed(id win_id);
   static std::size_t count();
@@ -111,6 +112,7 @@ private:
 
   typedef struct{
     std::string data;
+    bool has_update = false;
     std::mutex lock;
   } sync_name;
 
@@ -168,6 +170,8 @@ private:
     bool win_got_closed(id id);
     std::size_t get_count();
     
+    sync_windows windows;
+    
   private:
     // Meyer's singleton
     Manager();
@@ -185,7 +189,6 @@ private:
     id next_win_id = 0;
     std::thread graphics_thread;
     std::atomic< bool > stop_thread = false;
-    sync_windows windows;
     std::chrono::steady_clock::time_point prev_time;
     uint fps = 60;
   };
