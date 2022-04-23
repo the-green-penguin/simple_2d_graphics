@@ -28,9 +28,7 @@ SOFTWARE.
 #include "window.h"
 
 #include <iostream>
-#include <string>
 #include <exception>
-#include <chrono>
 
 
 
@@ -177,7 +175,6 @@ void Window::set_window_name(id win_id, const std::string& name){
 ////////////////////////////////////////////////////////////////////////////////
 
 Window::Wrapper::Wrapper(){
-  std::cout << "Init Wrapper\n";
   create_glfw_window();
   enable_gl_debugging();
   setup_shader_program();
@@ -187,7 +184,6 @@ Window::Wrapper::Wrapper(){
 
 //------------------------------------------------------------------------------
 Window::Wrapper::~Wrapper(){
-  std::cout << "End Wrapper\n";
   glfwDestroyWindow(window);
 }
 
@@ -403,7 +399,6 @@ std::size_t Window::Manager::get_count(){
 ////////////////////////////////////////////////////////////////////////////////
 
 Window::Manager::Manager(){
-  std::cout << "Init Manager\n";
   init_glfw();
   graphics_thread = std::thread(&Window::Manager::thread_func, this);
 }
@@ -412,7 +407,6 @@ Window::Manager::Manager(){
 
 //------------------------------------------------------------------------------
 Window::Manager::~Manager(){
-  std::cout << "End Manager\n";
   
   stop_thread.store(true);
   graphics_thread.join();
@@ -445,21 +439,22 @@ void Window::Manager::init_glfw(){
 
 //------------------------------------------------------------------------------
 void Window::Manager::thread_func(){
-  std::cout << "start thread\n";
+  
   while( ! stop_thread.load() ){
-    
     glfwWaitEvents();
-    {
-      std::lock_guard<std::mutex> lg(windows.lock);
-      for(auto &w : windows.data)
-        w.second->update();
-    }
-    
+    update_windows();
     remove_closed_windows();
-    
-    using namespace std::chrono_literals;
-    std::this_thread::sleep_for(10ms);
+    wait_until_next_frame();
   }
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::update_windows(){
+  std::lock_guard<std::mutex> lg(windows.lock);
+  for(auto &w : windows.data)
+    w.second->update();
 }
 
 
@@ -474,6 +469,25 @@ void Window::Manager::remove_closed_windows(){
       return value->should_close.load();   // condition for removal
     }
   );
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::wait_until_next_frame(){
+  using namespace std::chrono;
+  using namespace std::chrono_literals;
+  
+  steady_clock::time_point now = steady_clock::now();
+  microsecs time_elapsed = duration_cast<microseconds>(now - prev_time).count();
+  prev_time = now;
+  
+  microsecs time_per_frame = 1000000 / fps;
+  microsecs wait_time = 0;
+  if(time_per_frame > time_elapsed)
+    wait_time = time_per_frame - time_elapsed;
+  
+  std::this_thread::sleep_for( microseconds(wait_time) );
 }
 
 

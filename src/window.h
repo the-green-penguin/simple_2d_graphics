@@ -34,6 +34,7 @@ SOFTWARE.
 #include <atomic>
 #include <unordered_map>
 #include <queue>
+#include <chrono>
 
 ///#define GLFW_INCLUDE_NONE     // not needed/working on Ubuntu, etc.
 // #include <glad/gl.h>     // not needed/working on Ubuntu, etc.
@@ -55,6 +56,7 @@ SOFTWARE.
 
 
 typedef unsigned long long int id;   // if you call "add_gobject()" or "open()" more than 2^64 times, it's your problem!
+typedef uint microsecs;
 
 
 
@@ -176,11 +178,15 @@ private:
     // "actual" private members
     void init_glfw();
     void thread_func();   // graphics thread
+    void update_windows();   // graphics thread
     void remove_closed_windows();   // graphics thread
+    void wait_until_next_frame();   // graphics thread
 
     id next_win_id = 0;
     std::thread graphics_thread;
     std::atomic< bool > stop_thread = false;
     sync_windows windows;
+    std::chrono::steady_clock::time_point prev_time;
+    uint fps = 60;
   };
 };
