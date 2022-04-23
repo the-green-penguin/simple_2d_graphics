@@ -495,7 +495,7 @@ void Window::Manager::init_glfw(){
 void Window::Manager::thread_func(){
   
   while( ! stop_thread.load() ){
-    glfwWaitEvents();
+    glfwPollEvents();
     update_windows();
     remove_closed_windows();
     wait_until_next_frame();
