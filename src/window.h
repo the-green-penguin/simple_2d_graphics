@@ -31,6 +31,7 @@ SOFTWARE.
 #include <memory>
 #include <thread>
 #include <mutex>
+#include <shared_mutex>
 #include <atomic>
 #include <unordered_map>
 #include <queue>
@@ -118,7 +119,7 @@ private:
 
   typedef struct{
     std::unordered_map< id, std::shared_ptr< Wrapper > > data;
-    std::mutex lock;
+    std::shared_mutex lock;
   } sync_windows;
   
 //------------------------------------------------------------------------------

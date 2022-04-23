@@ -81,10 +81,10 @@ std::size_t Window::count(){
 
 //------------------------------------------------------------------------------
 id Window::add_gobject(id win_id, std::shared_ptr<GShape> gobject){
-  std::lock_guard<std::mutex> lg_0(Manager::get_instance().windows.lock);
+  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
   auto win = Manager::get_instance().windows.data.at(win_id);
   
-  std::lock_guard<std::mutex> lg_1(win->graphics_objects.lock);
+  std::lock_guard lg_1(win->graphics_objects.lock);
   win->graphics_objects.data.insert({
     win->next_gobj_id.load(),
     gobject
@@ -96,10 +96,10 @@ id Window::add_gobject(id win_id, std::shared_ptr<GShape> gobject){
 
 //------------------------------------------------------------------------------
 void Window::remove_gobject(id win_id, id id){
-  std::lock_guard<std::mutex> lg_0(Manager::get_instance().windows.lock);
+  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
   auto win = Manager::get_instance().windows.data.at(win_id);
   
-  std::lock_guard<std::mutex> lg_1(win->ids_to_delete.lock);
+  std::lock_guard lg_1(win->ids_to_delete.lock);
   win->ids_to_delete.data.push(id);
 }
 
@@ -107,7 +107,7 @@ void Window::remove_gobject(id win_id, id id){
 
 //------------------------------------------------------------------------------
 void Window::clear_gobjects(id win_id){
-  std::lock_guard<std::mutex> lg_0(Manager::get_instance().windows.lock);
+  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
   auto win = Manager::get_instance().windows.data.at(win_id);
   
   win->clear_gobjects.store(true);
@@ -117,10 +117,10 @@ void Window::clear_gobjects(id win_id){
 
 //------------------------------------------------------------------------------
 void Window::set_camera_position(id win_id, glm::vec3 pos){
-  std::lock_guard<std::mutex> lg_0(Manager::get_instance().windows.lock);
+  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
   auto win = Manager::get_instance().windows.data.at(win_id);
   
-  std::lock_guard<std::mutex> lg_1(win->camera.lock);
+  std::lock_guard lg_1(win->camera.lock);
   win->camera.data.set_position(pos);
 }
 
@@ -128,10 +128,10 @@ void Window::set_camera_position(id win_id, glm::vec3 pos){
 
 //------------------------------------------------------------------------------
 void Window::set_camera_zoom(id win_id, float zoom){
-  std::lock_guard<std::mutex> lg_0(Manager::get_instance().windows.lock);
+  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
   auto win = Manager::get_instance().windows.data.at(win_id);
   
-  std::lock_guard<std::mutex> lg_1(win->camera.lock);
+  std::lock_guard lg_1(win->camera.lock);
   win->camera.data.set_zoom(zoom);
 }
 
@@ -139,10 +139,10 @@ void Window::set_camera_zoom(id win_id, float zoom){
 
 //------------------------------------------------------------------------------
 void Window::mod_camera_zoom(id win_id, float zoom_diff){
-  std::lock_guard<std::mutex> lg_0(Manager::get_instance().windows.lock);
+  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
   auto win = Manager::get_instance().windows.data.at(win_id);
   
-  std::lock_guard<std::mutex> lg_1(win->camera.lock);
+  std::lock_guard lg_1(win->camera.lock);
   win->camera.data.mod_zoom(zoom_diff);
 }
 
@@ -150,10 +150,10 @@ void Window::mod_camera_zoom(id win_id, float zoom_diff){
 
 //------------------------------------------------------------------------------
 void Window::set_gobj_position(id win_id, id gobj_id, glm::vec3 pos){
-  std::lock_guard<std::mutex> lg_0(Manager::get_instance().windows.lock);
+  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
   auto win = Manager::get_instance().windows.data.at(win_id);
   
-  std::lock_guard<std::mutex> lg_1(win->graphics_objects.lock);
+  std::lock_guard lg_1(win->graphics_objects.lock);
   win->graphics_objects.data.at(gobj_id)->set_position(pos);
 }
 
@@ -161,10 +161,10 @@ void Window::set_gobj_position(id win_id, id gobj_id, glm::vec3 pos){
 
 //------------------------------------------------------------------------------
 void Window::set_gobj_rotation(id win_id, id gobj_id, float rot){
-  std::lock_guard<std::mutex> lg_0(Manager::get_instance().windows.lock);
+  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
   auto win = Manager::get_instance().windows.data.at(win_id);
   
-  std::lock_guard<std::mutex> lg_1(win->graphics_objects.lock);
+  std::lock_guard lg_1(win->graphics_objects.lock);
   win->graphics_objects.data.at(gobj_id)->set_rotation(rot);
 }
 
@@ -172,7 +172,7 @@ void Window::set_gobj_rotation(id win_id, id gobj_id, float rot){
 
 //------------------------------------------------------------------------------
 void Window::set_allow_zoom(id win_id, bool b){
-  std::lock_guard<std::mutex> lg_0(Manager::get_instance().windows.lock);
+  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
   auto win = Manager::get_instance().windows.data.at(win_id);
   
   win->allow_zoom.store(b);
@@ -182,7 +182,7 @@ void Window::set_allow_zoom(id win_id, bool b){
 
 //------------------------------------------------------------------------------
 void Window::set_allow_camera_movement(id win_id, bool b){
-  std::lock_guard<std::mutex> lg_0(Manager::get_instance().windows.lock);
+  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
   auto win = Manager::get_instance().windows.data.at(win_id);
   
   win->allow_camera_movement.store(b);
@@ -192,10 +192,10 @@ void Window::set_allow_camera_movement(id win_id, bool b){
 
 //------------------------------------------------------------------------------
 void Window::set_background_colour(id win_id, glm::vec3 colour){
-  std::lock_guard<std::mutex> lg_0(Manager::get_instance().windows.lock);
+  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
   auto win = Manager::get_instance().windows.data.at(win_id);
   
-  std::lock_guard<std::mutex> lg_1(win->background_colour.lock);
+  std::lock_guard lg_1(win->background_colour.lock);
   win->background_colour.data = colour;
 }
 
@@ -203,10 +203,10 @@ void Window::set_background_colour(id win_id, glm::vec3 colour){
 
 //------------------------------------------------------------------------------
 void Window::set_window_name(id win_id, const std::string& name){
-  std::lock_guard<std::mutex> lg_0(Manager::get_instance().windows.lock);
+  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
   auto win = Manager::get_instance().windows.data.at(win_id);
   
-  std::lock_guard<std::mutex> lg_1(win->window_name.lock);
+  std::lock_guard lg_1(win->window_name.lock);
   win->window_name.data = name;
   win->window_name.has_update = true;
 }
@@ -257,7 +257,7 @@ void Window::Wrapper::update(){
 
 void Window::Wrapper::create_glfw_window(){
   
-  std::lock_guard<std::mutex> lg(this->window_name.lock);   // lock string
+  std::lock_guard lg(this->window_name.lock);   // lock string
   window = glfwCreateWindow(640, 480, window_name.data.c_str(), NULL, NULL);
   if( ! window)
     throw std::runtime_error("GLFW window creation failed!");
@@ -318,7 +318,7 @@ void Window::Wrapper::exe_update(){
 
 //------------------------------------------------------------------------------
 void Window::Wrapper::update_name(){
-  std::lock_guard<std::mutex> lg(window_name.lock);
+  std::lock_guard lg(window_name.lock);
   if(window_name.has_update){
     glfwSetWindowTitle(window, window_name.data.c_str());
     window_name.has_update = false;
@@ -341,7 +341,7 @@ void Window::Wrapper::render(){
   // render content
   shader_program->use();
   {
-    std::lock_guard<std::mutex> lg(camera.lock);
+    std::lock_guard lg(camera.lock);
     camera.data.update(shader_program, (float)width, (float)height);
   }
   render_gobjects();
@@ -354,7 +354,7 @@ void Window::Wrapper::render(){
 
 //------------------------------------------------------------------------------
 void Window::Wrapper::set_background(){
-  std::lock_guard<std::mutex> lg(background_colour.lock);
+  std::lock_guard lg(background_colour.lock);
   glClearColor(
     background_colour.data.x,
     background_colour.data.y,
@@ -368,8 +368,8 @@ void Window::Wrapper::set_background(){
 
 //------------------------------------------------------------------------------
 void Window::Wrapper::delete_old_gobjects(){
-  std::lock_guard<std::mutex> lg_0(graphics_objects.lock);
-  std::lock_guard<std::mutex> lg_1(ids_to_delete.lock);
+  std::lock_guard lg_0(graphics_objects.lock);
+  std::lock_guard lg_1(ids_to_delete.lock);
   
   // delete all
   if( clear_gobjects.load() )
@@ -386,7 +386,7 @@ void Window::Wrapper::delete_old_gobjects(){
 
 //------------------------------------------------------------------------------
 void Window::Wrapper::render_gobjects(){
-  std::lock_guard<std::mutex> lg(graphics_objects.lock);
+  std::lock_guard lg(graphics_objects.lock);
     
   for(auto &obj : graphics_objects.data){
     // create vertex buffer if needed
@@ -413,7 +413,7 @@ Window::Manager& Window::Manager::get_instance(){
 
 //------------------------------------------------------------------------------
 id Window::Manager::add_win(){
-  std::lock_guard<std::mutex> lg(windows.lock);
+  std::lock_guard lg(windows.lock);
   windows.data.insert({
     next_win_id,
     std::make_shared< Wrapper >(next_win_id)
@@ -426,7 +426,7 @@ id Window::Manager::add_win(){
 
 //------------------------------------------------------------------------------
 void Window::Manager::close_win(id id){
-  std::lock_guard<std::mutex> lg(windows.lock);
+  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
   windows.data.at(id)->should_close.store(true);
 }
 
@@ -434,7 +434,7 @@ void Window::Manager::close_win(id id){
 
 //------------------------------------------------------------------------------
 bool Window::Manager::win_got_closed(id id){
-  std::lock_guard<std::mutex> lg(windows.lock);
+  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
   return ( ! windows.data.contains(id));
 }
 
@@ -442,7 +442,7 @@ bool Window::Manager::win_got_closed(id id){
 
 //------------------------------------------------------------------------------
 std::size_t Window::Manager::get_count(){
-  std::lock_guard<std::mutex> lg(windows.lock);
+  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
   return windows.data.size();
 }
 
@@ -466,7 +466,7 @@ Window::Manager::~Manager(){
   graphics_thread.join();
   
   {
-    std::lock_guard<std::mutex> lg(windows.lock);
+    std::lock_guard lg(windows.lock);
     windows.data.clear();
   }
   
@@ -506,7 +506,7 @@ void Window::Manager::thread_func(){
 
 //------------------------------------------------------------------------------
 void Window::Manager::update_windows(){
-  std::lock_guard<std::mutex> lg(windows.lock);
+  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
   for(auto &w : windows.data)
     w.second->update();
 }
@@ -515,7 +515,7 @@ void Window::Manager::update_windows(){
 
 //------------------------------------------------------------------------------
 void Window::Manager::remove_closed_windows(){
-  std::lock_guard<std::mutex> lg(windows.lock);
+  std::lock_guard lg(windows.lock);
   std::erase_if(
     windows.data,   // container
     [](const auto& item){
