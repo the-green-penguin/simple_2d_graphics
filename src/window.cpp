@@ -227,7 +227,7 @@ void Window::Wrapper::create_glfw_window(){
 
 //------------------------------------------------------------------------------
 void Window::Wrapper::load_gl_functions(){
-  GLenum err = glewInit();   // needs to be called after every context change!
+  GLenum err = glewInit();   // needs to be called after every context creation!
   if(err != GLEW_OK){
     std::string message = "glewInit() returned: '";
     message += reinterpret_cast<const char*>( glewGetErrorString(err) );   // fix incompatible "string" types
@@ -448,7 +448,7 @@ void Window::Manager::thread_func(){
   std::cout << "start thread\n";
   while( ! stop_thread.load() ){
     
-    glfwPollEvents();
+    glfwWaitEvents();
     {
       std::lock_guard<std::mutex> lg(windows.lock);
       for(auto &w : windows.data)
