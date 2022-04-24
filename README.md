@@ -1,12 +1,12 @@
-#How to use:  
-  1) Create directory `bin/`  
-  2) Run `make` or `make release`  
-  3) Integrate `libsimple_2d.a` into your project (see `example/Makefile`)  
-  4) Use the API  
+#How to use:
+  1) Create directory `bin/`
+  2) Run `make` or `make release`
+  3) Integrate `libsimple_2d.a` into your project (see `example/Makefile`)
+  4) Use the API
   
   
   
-#API:  
+#API:
   id          Window::open                      ()  
     -> Opens new window with uninitialised name and return its id  
     
@@ -67,17 +67,17 @@
     -> This object can then be added to a window  
     -> Adding it to multiple windows leads to undefined behaviour!  
       
-  ##Do NOT use any other functions that might be visible from this library!  
+  ##Do NOT use any other functions that might be visible from this library!
     
   
   
-#Developed and tested for GNU/Linux (Ubuntu-based).  
+#Developed and tested for GNU/Linux (Ubuntu-based).
   
-#Install to use (not necessary if build-dependencies are installed already):  
+#Install to use (not necessary if build-dependencies are installed already):
   libglew2.1  
   libglfw3  
   
-#Install to build:  
+#Install to build:
   libglm-dev  
   libglew-dev  
   libglfw3-dev  
