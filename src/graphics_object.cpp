@@ -37,8 +37,9 @@ SOFTWARE.
 // GObject public
 ////////////////////////////////////////////////////////////////////////////////
 
-GObject::GObject(glm::vec3 position){
+GObject::GObject(glm::vec3 position, float rotation){
   this->position = position;
+  this->rotation = fmod(rotation, 360.0f);
 }
 
 
@@ -49,7 +50,12 @@ GObject::~GObject(){}
 
 
 //------------------------------------------------------------------------------
-void GObject::set_position(glm::vec3 pos){  this-> position = pos;  }
+void GObject::set_position(glm::vec3 pos){  this->position = pos;  }
+
+
+
+//------------------------------------------------------------------------------
+void GObject::set_rotation(float rot){  this->rotation = fmod(rot, 360.0f);  }
 
 
 
@@ -68,9 +74,8 @@ GShape::GShape(
   float rotation,
   const std::vector<Vertex>& vertices,
   const std::vector<Index3>& indices)
-  : GObject(position){
+  : GObject(position, rotation){
     
-    this->rotation = fmod(rotation, 360.0f);
     this->vertices = vertices;
     this->indices = indices;
 }
@@ -87,6 +92,22 @@ GShape::~GShape(){
 
 
 //------------------------------------------------------------------------------
+void GShape::render(std::shared_ptr<Shader_Program> shader_program){
+  if( ! buffers_ready)
+    setup_buffers();
+  
+  model_transformation(shader_program);
+  
+  glBindVertexArray(vertex_array_object);
+  glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// GShape private
+////////////////////////////////////////////////////////////////////////////////
+
 void GShape::setup_buffers(){
   int buffer_size;
   
@@ -123,24 +144,6 @@ void GShape::setup_buffers(){
 
 
 //------------------------------------------------------------------------------
-void GShape::render(std::shared_ptr<Shader_Program> shader_program){
-  model_transformation(shader_program);
-  
-  glBindVertexArray(vertex_array_object);
-  glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
-}
-
-
-
-//------------------------------------------------------------------------------
-void GShape::set_rotation(float rot){  this-> rotation = fmod(rot, 360.0f);  }
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// GShape private
-////////////////////////////////////////////////////////////////////////////////
-
 void GShape::model_transformation(std::shared_ptr<Shader_Program> shader_program){
   glm::mat4 mtrans = glm::mat4(1.0f);
   

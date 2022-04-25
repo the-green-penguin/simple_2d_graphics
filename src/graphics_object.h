@@ -58,13 +58,17 @@ struct Index3{
 //------------------------------------------------------------------------------
 class GObject{
 public:
-  GObject(glm::vec3 position);
+  GObject() = default;
+  GObject(glm::vec3 position, float rotation);
   ~GObject();
-  virtual void render(std::shared_ptr<Shader_Program> shader_program) = 0;
   void set_position(glm::vec3 pos);
+  void set_rotation(float rot);
+  
+  virtual void render(std::shared_ptr<Shader_Program> shader_program) = 0;   // don't use this! (only intended for Window::Wrapper)
   
 protected:
   glm::vec3 position = {0.0f, 0.0f, 0.0f};
+  float rotation = 0.0f;  // degrees
 };
 
 
@@ -72,8 +76,6 @@ protected:
 //------------------------------------------------------------------------------
 class GShape: public GObject{
 public:
-  bool buffers_ready = false;
-  
   GShape(
     glm::vec3 position,
     float rotation,
@@ -81,17 +83,17 @@ public:
     const std::vector<Index3>& indices
   );
   ~GShape();
-  virtual void setup_buffers();
-  virtual void render(std::shared_ptr<Shader_Program> shader_program);
-  void set_rotation(float rot);
+  
+  virtual void render(std::shared_ptr<Shader_Program> shader_program);   // don't use this! (only intended for Window::Wrapper)
   
 protected:
   GLuint vertex_buffer, vertex_array_object, element_buffer;
   std::vector<Vertex> vertices;
   std::vector<Index3> indices;
   std::size_t index_count;
-  float rotation = 0.0f;  // degrees
+  bool buffers_ready = false;
   
+  virtual void setup_buffers();
   virtual void model_transformation(std::shared_ptr<Shader_Program> shader_program);
 };
 

@@ -366,14 +366,8 @@ void Window::Wrapper::delete_old_gobjects(){
 void Window::Wrapper::render_gobjects(){
   std::lock_guard lg(graphics_objects.lock);
     
-  for(auto &obj : graphics_objects.data){
-    // create vertex buffer if needed
-    if(obj.second->buffers_ready == false)
-      obj.second->setup_buffers();
-      
-    // actual rendering
+  for(auto &obj : graphics_objects.data)
     obj.second->render(shader_program);
-  }
 }
 
 
