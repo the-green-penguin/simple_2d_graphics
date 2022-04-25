@@ -38,7 +38,7 @@ void create_gobjects();
 void loop();
 
 std::vector<id> windows;
-std::vector<id> objects;
+std::vector< std::shared_ptr< GShape > > objects;
 
 
 
@@ -69,48 +69,39 @@ void test(){
 //------------------------------------------------------------------------------
 void create_gobjects(){
 	objects.push_back(
-		Window::add_gobject(
-			windows[0],
-			std::make_shared<GTriangle>(
-				glm::vec3(200.0f, 200.0f, 0.0f),
-				50.0f,
-				glm::vec3(0.5f, 0.5f, 0.0f)
-			)
+		std::make_shared<GTriangle>(
+			glm::vec3(200.0f, 200.0f, 0.0f),
+			50.0f,
+			glm::vec3(0.5f, 0.5f, 0.0f)
 		)
 	);
 	
 	objects.push_back(
-		Window::add_gobject(
-			windows[0],
-			std::make_shared<GTriangle>(
-				glm::vec3(200.0f, 200.0f, 0.0f),
-				90.0f, 30.0f,
-				glm::vec3(0.25f, 0.25f, 0.7f)
-			)
+		std::make_shared<GTriangle>(
+			glm::vec3(200.0f, 200.0f, 0.0f),
+			90.0f, 30.0f,
+			glm::vec3(0.25f, 0.25f, 0.7f)
 		)
 	);
 	
 	objects.push_back(
-		Window::add_gobject(
-			windows[0],
-			std::make_shared<GRect>(
-				glm::vec3(200.0f, 200.0f, 0.0f),
-				0.0f, 30.0f,
-				glm::vec3(1.0f, 0.75f, 0.25f)
-			)
+		std::make_shared<GRect>(
+			glm::vec3(200.0f, 200.0f, 0.0f),
+			0.0f, 30.0f,
+			glm::vec3(1.0f, 0.75f, 0.25f)
 		)
 	);
 	
 	objects.push_back(
-		Window::add_gobject(
-			windows[0],
-			std::make_shared<GCircle>(
-				glm::vec3(100.0f, 100.0f, 0.0f),
-				0.0f, 100.0f,
-				glm::vec3(1.0f, 0.75f, 0.25f)
-			)
+		std::make_shared<GCircle>(
+			glm::vec3(100.0f, 100.0f, 0.0f),
+			0.0f, 100.0f,
+			glm::vec3(1.0f, 0.75f, 0.25f)
 		)
 	);
+	
+	for(auto &o : objects)
+		Window::add_gobject(windows[0], o);
 }
 
 
@@ -120,18 +111,10 @@ void loop(){
 	
 	for(int i = 0; i < 100; i++){
 		// move triangle
-		Window::set_gobj_position(
-			windows[0],
-			objects[0],
-			glm::vec3(200.0f + i, 200.0f + i, 0.0f)
-		);
+		objects[0]->set_position(glm::vec3(200.0f + i, 200.0f + i, 0.0f));
 		
 		// rotate circle
-		Window::set_gobj_rotation(
-			windows[0],
-			objects[3],
-			i * 10
-		);
+		objects[3]->set_rotation(i * 10);
 		
 		// adjust camera
 		Window::set_camera_position(

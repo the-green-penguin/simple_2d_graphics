@@ -74,8 +74,6 @@ public:
   static id add_gobject(id win_id, std::shared_ptr< GShape > gobject);
   static void remove_gobject(id win_id, id gobj_id);
   static void clear_gobjects(id win_id);
-  static void set_gobj_position(id win_id, id gobj_id, glm::vec3 pos);
-  static void set_gobj_rotation(id win_id, id gobj_id, float rot);
   static void set_camera_position(id win_id, glm::vec3 pos);
   static void set_camera_zoom(id win_id, float zoom);
   static void mod_camera_zoom(id win_id, float zoom_diff);

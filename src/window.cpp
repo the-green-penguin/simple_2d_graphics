@@ -149,28 +149,6 @@ void Window::mod_camera_zoom(id win_id, float zoom_diff){
 
 
 //------------------------------------------------------------------------------
-void Window::set_gobj_position(id win_id, id gobj_id, glm::vec3 pos){
-  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
-  auto win = Manager::get_instance().windows.data.at(win_id);
-  
-  std::lock_guard lg_1(win->graphics_objects.lock);
-  win->graphics_objects.data.at(gobj_id)->set_position(pos);
-}
-
-
-
-//------------------------------------------------------------------------------
-void Window::set_gobj_rotation(id win_id, id gobj_id, float rot){
-  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
-  auto win = Manager::get_instance().windows.data.at(win_id);
-  
-  std::lock_guard lg_1(win->graphics_objects.lock);
-  win->graphics_objects.data.at(gobj_id)->set_rotation(rot);
-}
-
-
-
-//------------------------------------------------------------------------------
 void Window::set_allow_zoom(id win_id, bool b){
   std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
   auto win = Manager::get_instance().windows.data.at(win_id);
