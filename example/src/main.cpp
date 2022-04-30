@@ -38,7 +38,7 @@ void create_gobjects();
 void loop();
 
 std::vector<id> windows;
-std::vector< std::shared_ptr< GShape > > objects;
+std::vector<id> objects;
 
 
 
@@ -68,40 +68,46 @@ void test(){
 
 //------------------------------------------------------------------------------
 void create_gobjects(){
-	objects.push_back(
-		std::make_shared<GTriangle>(
-			glm::vec3(200.0f, 200.0f, 0.0f),
-			50.0f,
-			glm::vec3(0.5f, 0.5f, 0.0f)
-		)
-	);
+	id obj;
 	
-	objects.push_back(
-		std::make_shared<GTriangle>(
-			glm::vec3(200.0f, 200.0f, 0.0f),
-			90.0f, 30.0f,
-			glm::vec3(0.25f, 0.25f, 0.7f)
-		)
+	obj = Window::add_gobject(
+		windows[0],
+		t_triangle,
+		{200.0f, 200.0f, 0.0f},
+		50.0f,
+		{0.5f, 0.5f, 0.0f}
 	);
+	objects.push_back(obj);
 	
-	objects.push_back(
-		std::make_shared<GRect>(
-			glm::vec3(200.0f, 200.0f, 0.0f),
-			0.0f, 30.0f,
-			glm::vec3(1.0f, 0.75f, 0.25f)
-		)
+	obj = Window::add_gobject(
+		windows[0],
+		t_triangle,
+		{200.0f, 200.0f, 0.0f},
+		90.0f,
+		30.0f,
+		{0.25f, 0.25f, 0.7f}
 	);
+	objects.push_back(obj);
 	
-	objects.push_back(
-		std::make_shared<GCircle>(
-			glm::vec3(100.0f, 100.0f, 0.0f),
-			0.0f, 100.0f,
-			glm::vec3(1.0f, 0.75f, 0.25f)
-		)
+	obj = Window::add_gobject(
+		windows[0],
+		t_rectangle,
+		{200.0f, 200.0f, 0.0f},
+		0.0f,
+		30.0f,
+		{1.0f, 0.75f, 0.25f}
 	);
+	objects.push_back(obj);
 	
-	for(auto &o : objects)
-		Window::add_gobject(windows[0], o);
+	obj = Window::add_gobject(
+		windows[0],
+		t_circle,
+		{100.0f, 100.0f, 0.0f},
+		0.0f,
+		100.0f,
+		{1.0f, 0.75f, 0.25f}
+	);
+	objects.push_back(obj);
 }
 
 
@@ -111,15 +117,23 @@ void loop(){
 	
 	for(int i = 0; i < 100; i++){
 		// move triangle
-		objects[0]->set_position(glm::vec3(200.0f + i, 200.0f + i, 0.0f));
+		Window::set_gobj_position(
+			windows[0],
+			objects[0],
+			{200.0f + i, 200.0f + i, 0.0f}
+		);
 		
 		// rotate circle
-		objects[3]->set_rotation(i * 10);
+		Window::set_gobj_rotation(
+			windows[0],
+			objects[3],
+			i * 10
+		);
 		
 		// adjust camera
 		Window::set_camera_position(
 			windows[0],
-			glm::vec3(0.0f + i/2, 0.0f + i, 0.0f)
+			{0.0f + i/2, 0.0f + i, 0.0f}
 		);
 		Window::set_camera_zoom(
 			windows[0],

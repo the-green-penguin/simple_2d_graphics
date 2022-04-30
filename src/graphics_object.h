@@ -122,6 +122,10 @@ public:
     float size,
     glm::vec3 colour
   );
+  GTriangle(
+    float size,
+    glm::vec3 colour
+  );
   ~GTriangle();
   
 protected:
@@ -152,6 +156,10 @@ public:
   );
   GRect(
     glm::vec3 position,
+    float size,
+    glm::vec3 colour
+  );
+  GRect(
     float size,
     glm::vec3 colour
   );
@@ -187,6 +195,10 @@ public:
   );
   GCircle(
     glm::vec3 position,
+    float size,
+    glm::vec3 colour
+  );
+  GCircle(
     float size,
     glm::vec3 colour
   );

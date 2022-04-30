@@ -192,6 +192,12 @@ GTriangle::GTriangle(glm::vec3 position, float size, glm::vec3 colour)
 
 
 //------------------------------------------------------------------------------
+GTriangle::GTriangle(float size, glm::vec3 colour)
+  : GTriangle({0.0f, 0.0f, 0.0f}, 0.0f, size, colour){}   // set position & rotation to default
+
+
+
+//------------------------------------------------------------------------------
 GTriangle::~GTriangle(){}
 
 
@@ -253,6 +259,12 @@ GRect::GRect(glm::vec3 position, float size, glm::vec3 colour)
 
 
 //------------------------------------------------------------------------------
+GRect::GRect(float size, glm::vec3 colour)
+  : GRect({0.0f, 0.0f, 0.0f}, 0.0f, size, colour){}   // set position & rotation to default
+
+
+
+//------------------------------------------------------------------------------
 GRect::~GRect(){}
 
 
@@ -308,6 +320,12 @@ GCircle::GCircle(glm::vec3 position, float rotation, float size, glm::vec3 colou
 //------------------------------------------------------------------------------
 GCircle::GCircle(glm::vec3 position, float size, glm::vec3 colour)
   : GCircle(position, 0.0f, size, colour){}   // set rotation to default
+
+
+
+//------------------------------------------------------------------------------
+GCircle::GCircle(float size, glm::vec3 colour)
+  : GCircle({0.0f, 0.0f, 0.0f}, 0.0f, size, colour){}   // set position & rotation to default
 
 
 

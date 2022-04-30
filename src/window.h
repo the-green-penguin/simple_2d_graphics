@@ -58,6 +58,11 @@ SOFTWARE.
 
 typedef unsigned long long int id;   // if you call "add_gobject()" or "open()" more than 2^64 times, it's your problem!
 typedef uint microsecs;
+enum gobj_type{
+  t_triangle,
+  t_rectangle,
+  t_circle
+};
 
 
 
@@ -71,9 +76,13 @@ public:
   static void close(id win_id);
   static bool got_closed(id win_id);
   static std::size_t count();
-  static id add_gobject(id win_id, std::shared_ptr< GShape > gobject);
+  static id add_gobject(id win_id, gobj_type g_type, float size, glm::vec3 colour);
+  static id add_gobject(id win_id, gobj_type g_type, glm::vec3 position, float size, glm::vec3 colour);
+  static id add_gobject(id win_id, gobj_type g_type, glm::vec3 position, float rotation, float size, glm::vec3 colour);
   static void remove_gobject(id win_id, id gobj_id);
   static void clear_gobjects(id win_id);
+  static void set_gobj_position(id win_id, id gobj_id, glm::vec3 position);
+  static void set_gobj_rotation(id win_id, id gobj_id, float rotation);
   static void set_camera_position(id win_id, glm::vec3 pos);
   static void set_camera_zoom(id win_id, float zoom);
   static void mod_camera_zoom(id win_id, float zoom_diff);
@@ -82,16 +91,20 @@ public:
   static void set_background_colour(id win_id, glm::vec3 colour);
   static void set_window_name(id win_id, const std::string& name);
   
+  
+  
 private:
   // predeclare private classes
   class Wrapper;
   class Manager;
   
+  
+  
 //------------------------------------------------------------------------------
   // structs for thread synchronisation
   typedef struct{
     std::unordered_map< id, std::shared_ptr< GShape > > data;
-    std::mutex lock;
+    std::shared_mutex lock;
   } sync_gobjects;
 
   typedef struct{
@@ -119,6 +132,8 @@ private:
     std::unordered_map< id, std::shared_ptr< Wrapper > > data;
     std::shared_mutex lock;
   } sync_windows;
+  
+  
   
 //------------------------------------------------------------------------------
   // helper class (actual internal data)
@@ -160,6 +175,8 @@ private:
     void render_gobjects();   // graphics thread
   };
   
+  
+  
 //------------------------------------------------------------------------------
   // window manager (Meyer's singleton), handles separate thread
   class Manager{    
@@ -192,4 +209,13 @@ private:
     std::chrono::steady_clock::time_point prev_time;
     uint fps = 60;
   };
+
+
+
+//------------------------------------------------------------------------------
+  // actual private functions of Window
+  static std::shared_ptr< GShape > new_gobject(gobj_type g_type, float size, glm::vec3 colour);
+  static std::shared_ptr< GShape > new_gobject(gobj_type g_type, glm::vec3 position, float size, glm::vec3 colour);
+  static std::shared_ptr< GShape > new_gobject(gobj_type g_type, glm::vec3 position, float rotation, float size, glm::vec3 colour);
+  static id add_new_gobject(id win_id, std::shared_ptr< GShape > obj);
 };

@@ -22,13 +22,21 @@
   std::size_t Window::count                     ()  
 >    - Returns the amount of active windows  
     
-  id          Window::add_gobject               (id win_id, std::shared_ptr< GShape > gobject)  
+  id          Window::add_gobject               (id win_id, gobj_type g_type, float size, glm::vec3 colour)  
+  id          Window::add_gobject               (id win_id, gobj_type g_type, glm::vec3 position, float size, glm::vec3 colour)  
+  id          Window::add_gobject               (id win_id, gobj_type g_type, glm::vec3 position, float rotation, float size, glm::vec3 colour)  
 >    - Adds a graphics_object to the specified window  
     
   void        Window::remove_gobject            (id win_id, id gobj_id)  
 >    - Removes specified graphics_object from specified window  
     
   void        Window::clear_gobjects            (id win_id)  
+>    - Removes all graphics_objects from specified window  
+    
+  void        Window::set_gobj_position         (id win_id, id gobj_id, glm::vec3 position)  
+>    - Removes all graphics_objects from specified window  
+    
+  void        Window::set_gobj_rotation         (id win_id, id gobj_id, float rotation)  
 >    - Removes all graphics_objects from specified window  
     
   void        Window::set_camera_position       (id win_id, glm::vec3 pos)  
@@ -51,23 +59,8 @@
     
   void        Window::set_window_name           (id win_id, const std::string& name)  
 >    - Sets name of specified winow  
-      
-  [obj]       GTriangle/GRect/GCircle           (glm::vec3 position, float size, glm::vec3 colour)  
-  [obj]       GTriangle/GRect/GCircle           (glm::vec3 position, float rotation, float size, glm::vec3 colour)  
-  [obj]       GTriangle/GRect/GCircle           (glm::vec3 position, const std::vector<Vertex>& vertices)  
-  [obj]       GTriangle/GRect/GCircle           (glm::vec3 position, float rotation, const std::vector<Vertex>& vertices)  
->    - Constructs a graphics_object of type triangle/rectangle/circle with specified properties  
->    - If `vertices` are given and their count does not match the type, an exception will be thrown!  
->    - This object can then be added to one or multiple windows  
->    - It is recommended to keep a copy of the [obj] in your code so you are able to modify it (see following functions)  
-
-  void        [obj]->set_position               ()  
->    - Modifies position of graphics_object [obj]  
-
-  void        [obj]->set_rotation               ()  
->    - Modifies rotation of graphics_object [obj]  
-      
-  ### Do NOT use any other functions that might be visible from this library!
+    
+  ### ONLY use these static Window functions! Calling any other function exposed by the library will lead to undefined behaviour!  
     
   
   
