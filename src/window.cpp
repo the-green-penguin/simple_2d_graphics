@@ -442,11 +442,21 @@ void Window::Manager::push_msg_from_API(const Thread_Message& msg){
 
 //------------------------------------------------------------------------------
 void Window::Manager::process_msgs_to_API(){
-  std::lock_guard lock(get_instance().messages_to_API.mutex);
-  
-  while( ! get_instance().messages_to_API.data.empty()){
-    auto ret = get_instance().messages_to_API.data.front();
-    get_instance().messages_to_API.data.pop();
+  while(true){
+    Thread_Message msg;
+    
+    {
+      std::lock_guard lock(get_instance().messages_to_API.mutex);
+      if(get_instance().messages_to_API.data.empty())
+        break;
+      
+      else{
+        msg = get_instance().messages_to_API.data.front();
+        get_instance().messages_to_API.data.pop();
+      }
+    }
+    
+    get_instance().process_msg(msg);
   }
 }
 
@@ -549,20 +559,29 @@ void Window::Manager::wait_until_next_frame(){
 
 //------------------------------------------------------------------------------
 void Window::Manager::push_msg_to_API(const Thread_Message& msg){
-  std::lock_guard lock(get_instance().messages_to_API.mutex);
-  get_instance().messages_to_API.data.push( msg );
+  std::lock_guard lock(messages_to_API.mutex);
+  messages_to_API.data.push( msg );
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::Manager::process_msgs_from_API(){
-  std::lock_guard lock(get_instance().messages_from_API.mutex);
-  
-  while( ! get_instance().messages_from_API.data.empty()){
-    auto msg = get_instance().messages_from_API.data.front();
+  while(true){
+    Thread_Message msg;
+    
+    {
+      std::lock_guard lock(messages_from_API.mutex);
+      if(messages_from_API.data.empty())
+        break;
+      
+      else{
+        msg = messages_from_API.data.front();
+        messages_from_API.data.pop();
+      }
+    }
+    
     process_msg(msg);
-    get_instance().messages_from_API.data.pop();
   }
 }
 
@@ -665,7 +684,7 @@ void Window::Manager::add_win(id win_id, const std::string& name){
   
   Thread_Message msg = {Thread_Message::count_win, windows.size()};
   push_msg_to_API(msg);
-  msg = {Thread_Message::count_win, std::make_tuple(win_id, name) };
+  msg = {Thread_Message::set_window_name, std::make_tuple(win_id, name) };
   push_msg_from_API(msg);
 }
 
