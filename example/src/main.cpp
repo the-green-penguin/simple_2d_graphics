@@ -115,7 +115,7 @@ void create_gobjects(){
 //------------------------------------------------------------------------------
 void loop(){
 	
-	for(int i = 0; i < 100; i++){
+	for(int i = 0; i < 100; i++){		
 		// move triangle
 		Window::set_gobj_position(
 			windows[0],
@@ -139,6 +139,18 @@ void loop(){
 			windows[0],
 			1.0f + i * 0.01f
 		);
+		
+		// lock stress test
+		for(int j = 0; j < 100; j++){
+			Window::add_gobject(
+				windows[1],
+				t_circle,
+				{100.0f, 100.0f, 0.0f},
+				0.0f,
+				10.0f,
+				{0.0f, 0.75f, 0.75f}
+			);
+		}
 		
 		// delay
 		std::this_thread::sleep_for(10ms);

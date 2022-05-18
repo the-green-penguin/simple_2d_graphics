@@ -43,30 +43,34 @@ void APIENTRY glDebugOutput(GLenum source, GLenum type, uint id, GLenum severity
 ////////////////////////////////////////////////////////////////////////////////
 
 id Window::open(){
-  id new_win_id = Manager::get_instance().add_win();
-  return new_win_id;
+  return open("");
 }
 
 
 
 //------------------------------------------------------------------------------
 id Window::open(const std::string& name){
-  id new_win_id = Manager::get_instance().add_win();
-  set_window_name(new_win_id, name);
-  return new_win_id;
+  id win_id = Manager::get_next_win_id();
+  
+  Thread_Message msg = { Thread_Message::open_win, std::make_tuple(win_id, name) };
+  Manager::push_msg_from_API(msg);
+  
+  return win_id;
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::close(id win_id){
-  Manager::get_instance().close_win(win_id);
+  Thread_Message msg = { Thread_Message::close_win, win_id };
+  Manager::push_msg_from_API(msg);
 }
 
 
 
 //------------------------------------------------------------------------------
 bool Window::got_closed(id win_id){
+  Manager::process_msgs_to_API();   // update Manager
   return Manager::get_instance().win_got_closed(win_id);
 }
 
@@ -74,6 +78,7 @@ bool Window::got_closed(id win_id){
 
 //------------------------------------------------------------------------------
 std::size_t Window::count(){
+  Manager::process_msgs_to_API();   // update Manager
   return Manager::get_instance().get_count();
 }
 
@@ -82,7 +87,12 @@ std::size_t Window::count(){
 //------------------------------------------------------------------------------
 id Window::add_gobject(id win_id, gobj_type g_type, float size, glm::vec3 colour){
   std::shared_ptr< GShape > gobject = new_gobject(g_type, size, colour);
-  return add_new_gobject(win_id, gobject);
+  id gobj_id = Manager::get_next_gobj_id();
+  
+  Thread_Message msg = { Thread_Message::add_gobject, std::make_tuple(win_id, gobj_id, gobject) };
+  Manager::push_msg_from_API(msg);
+  
+  return gobj_id;
 }
 
 
@@ -90,7 +100,12 @@ id Window::add_gobject(id win_id, gobj_type g_type, float size, glm::vec3 colour
 //------------------------------------------------------------------------------
 id Window::add_gobject(id win_id, gobj_type g_type, glm::vec3 position, float size, glm::vec3 colour){
   std::shared_ptr< GShape > gobject = new_gobject(g_type, position, size, colour);
-  return add_new_gobject(win_id, gobject);
+  id gobj_id = Manager::get_next_gobj_id();
+  
+  Thread_Message msg = { Thread_Message::add_gobject, std::make_tuple(win_id, gobj_id, gobject) };
+  Manager::push_msg_from_API(msg);
+  
+  return gobj_id;
 }
 
 
@@ -98,126 +113,100 @@ id Window::add_gobject(id win_id, gobj_type g_type, glm::vec3 position, float si
 //------------------------------------------------------------------------------
 id Window::add_gobject(id win_id, gobj_type g_type, glm::vec3 position, float rotation, float size, glm::vec3 colour){
   std::shared_ptr< GShape > gobject = new_gobject(g_type, position, rotation, size, colour);
-  return add_new_gobject(win_id, gobject);
+  id gobj_id = Manager::get_next_gobj_id();
+  
+  Thread_Message msg = { Thread_Message::add_gobject, std::make_tuple(win_id, gobj_id, gobject) };
+  Manager::push_msg_from_API(msg);
+  
+  return gobj_id;
 }
 
 
 
 //------------------------------------------------------------------------------
-void Window::remove_gobject(id win_id, id id){
-  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
-  auto win = Manager::get_instance().windows.data.at(win_id);
-  
-  std::lock_guard lg_1(win->ids_to_delete.lock);
-  win->ids_to_delete.data.push(id);
+void Window::remove_gobject(id win_id, id gobj_id){
+  Thread_Message msg = { Thread_Message::remove_gobject, std::make_tuple(win_id, gobj_id) };
+  Manager::push_msg_from_API(msg);
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::clear_gobjects(id win_id){
-  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
-  auto win = Manager::get_instance().windows.data.at(win_id);
-  
-  win->clear_gobjects.store(true);
+  Thread_Message msg = { Thread_Message::clear_gobjects, win_id };
+  Manager::push_msg_from_API(msg);
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::set_gobj_position(id win_id, id gobj_id, glm::vec3 position){
-  std::shared_lock sl_0(Manager::get_instance().windows.lock, std::defer_lock);
-  auto win = Manager::get_instance().windows.data.at(win_id);
-  
-  std::shared_lock sl_1(win->graphics_objects.lock, std::defer_lock);
-  win->graphics_objects.data.at(gobj_id)->set_position(position);
+  Thread_Message msg = { Thread_Message::set_gobj_position, std::make_tuple(win_id, gobj_id, position) };
+  Manager::push_msg_from_API(msg);
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::set_gobj_rotation(id win_id, id gobj_id, float rotation){
-  std::shared_lock sl_0(Manager::get_instance().windows.lock, std::defer_lock);
-  auto win = Manager::get_instance().windows.data.at(win_id);
-  
-  std::shared_lock sl_1(win->graphics_objects.lock, std::defer_lock);
-  win->graphics_objects.data.at(gobj_id)->set_rotation(rotation);
+  Thread_Message msg = { Thread_Message::set_gobj_rotation, std::make_tuple(win_id, gobj_id, rotation) };
+  Manager::push_msg_from_API(msg);
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::set_camera_position(id win_id, glm::vec3 pos){
-  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
-  auto win = Manager::get_instance().windows.data.at(win_id);
-  
-  std::lock_guard lg_1(win->camera.lock);
-  win->camera.data.set_position(pos);
+  Thread_Message msg = { Thread_Message::set_camera_position, std::make_tuple(win_id, pos) };
+  Manager::push_msg_from_API(msg);
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::set_camera_zoom(id win_id, float zoom){
-  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
-  auto win = Manager::get_instance().windows.data.at(win_id);
-  
-  std::lock_guard lg_1(win->camera.lock);
-  win->camera.data.set_zoom(zoom);
+  Thread_Message msg = { Thread_Message::set_camera_zoom, std::make_tuple(win_id, zoom) };
+  Manager::push_msg_from_API(msg);
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::mod_camera_zoom(id win_id, float zoom_diff){
-  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
-  auto win = Manager::get_instance().windows.data.at(win_id);
-  
-  std::lock_guard lg_1(win->camera.lock);
-  win->camera.data.mod_zoom(zoom_diff);
+  Thread_Message msg = { Thread_Message::mod_camera_zoom, std::make_tuple(win_id, zoom_diff) };
+  Manager::push_msg_from_API(msg);
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::set_allow_zoom(id win_id, bool b){
-  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
-  auto win = Manager::get_instance().windows.data.at(win_id);
-  
-  win->allow_zoom.store(b);
+  Thread_Message msg = { Thread_Message::set_allow_zoom, std::make_tuple(win_id, b) };
+  Manager::push_msg_from_API(msg);
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::set_allow_camera_movement(id win_id, bool b){
-  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
-  auto win = Manager::get_instance().windows.data.at(win_id);
-  
-  win->allow_camera_movement.store(b);
+  Thread_Message msg = { Thread_Message::set_allow_camera_movement, std::make_tuple(win_id, b) };
+  Manager::push_msg_from_API(msg);
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::set_background_colour(id win_id, glm::vec3 colour){
-  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
-  auto win = Manager::get_instance().windows.data.at(win_id);
-  
-  std::lock_guard lg_1(win->background_colour.lock);
-  win->background_colour.data = colour;
+  Thread_Message msg = { Thread_Message::set_background_colour, std::make_tuple(win_id, colour) };
+  Manager::push_msg_from_API(msg);
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::set_window_name(id win_id, const std::string& name){
-  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
-  auto win = Manager::get_instance().windows.data.at(win_id);
-  
-  std::lock_guard lg_1(win->window_name.lock);
-  win->window_name.data = name;
-  win->window_name.has_update = true;
+  Thread_Message msg = { Thread_Message::set_window_name, std::make_tuple(win_id, name) };
+  Manager::push_msg_from_API(msg);
 }
 
 
@@ -273,21 +262,6 @@ std::shared_ptr< GShape > Window::new_gobject(gobj_type g_type, glm::vec3 positi
 
 
 
-//------------------------------------------------------------------------------
-id Window::add_new_gobject(id win_id, std::shared_ptr< GShape > obj){
-  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
-  auto win = Manager::get_instance().windows.data.at(win_id);
-  
-  std::lock_guard lg_1(win->graphics_objects.lock);
-  win->graphics_objects.data.insert({
-    win->next_gobj_id.load(),
-    obj
-  });
-  return win->next_gobj_id++;
-}
-
-
-
 ////////////////////////////////////////////////////////////////////////////////
 // Wrapper public
 ////////////////////////////////////////////////////////////////////////////////
@@ -311,11 +285,21 @@ Window::Wrapper::~Wrapper(){
 
 //------------------------------------------------------------------------------
 void Window::Wrapper::update(){
-  if( glfwWindowShouldClose(window) )
-    should_close.store(true);
+  if( glfwWindowShouldClose(window) ){
+    Thread_Message msg = { Thread_Message::close_win, w_id };
+    Manager::push_msg_from_API(msg);
+  }
     
   else
     exe_update();
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Wrapper::update_name(const std::string& name){
+  window_name = name;
+  glfwSetWindowTitle(window, name.c_str());
 }
 
 
@@ -325,9 +309,7 @@ void Window::Wrapper::update(){
 ////////////////////////////////////////////////////////////////////////////////
 
 void Window::Wrapper::create_glfw_window(){
-  
-  std::lock_guard lg(this->window_name.lock);   // lock string
-  window = glfwCreateWindow(640, 480, window_name.data.c_str(), NULL, NULL);
+  window = glfwCreateWindow(640, 480, window_name.c_str(), NULL, NULL);
   if( ! window)
     throw std::runtime_error("GLFW window creation failed!");
     
@@ -379,27 +361,13 @@ void Window::Wrapper::setup_shader_program(){
 //------------------------------------------------------------------------------
 void Window::Wrapper::exe_update(){
   glfwMakeContextCurrent(window);
-  update_name();
   render();
 }
 
 
 
 //------------------------------------------------------------------------------
-void Window::Wrapper::update_name(){
-  std::lock_guard lg(window_name.lock);
-  if(window_name.has_update){
-    glfwSetWindowTitle(window, window_name.data.c_str());
-    window_name.has_update = false;
-  }
-}
-
-
-
-//------------------------------------------------------------------------------
 void Window::Wrapper::render(){
-  delete_old_gobjects();
-  
   // adjust window size
   glfwGetFramebufferSize(window, &width, &height);
   glViewport(0, 0, width, height);
@@ -409,10 +377,7 @@ void Window::Wrapper::render(){
   
   // render content
   shader_program->use();
-  {
-    std::lock_guard lg(camera.lock);
-    camera.data.update(shader_program, (float)width, (float)height);
-  }
+  camera.update(shader_program, (float)width, (float)height);
   render_gobjects();
   
   // show content
@@ -423,11 +388,10 @@ void Window::Wrapper::render(){
 
 //------------------------------------------------------------------------------
 void Window::Wrapper::set_background(){
-  std::lock_guard lg(background_colour.lock);
   glClearColor(
-    background_colour.data.x,
-    background_colour.data.y,
-    background_colour.data.z,
+    background_colour.x,
+    background_colour.y,
+    background_colour.z,
     1.0f
   );
   glClear(GL_COLOR_BUFFER_BIT);
@@ -436,28 +400,8 @@ void Window::Wrapper::set_background(){
 
 
 //------------------------------------------------------------------------------
-void Window::Wrapper::delete_old_gobjects(){
-  std::lock_guard lg_0(graphics_objects.lock);
-  std::lock_guard lg_1(ids_to_delete.lock);
-  
-  // delete all
-  if( clear_gobjects.load() )
-    graphics_objects.data.clear();
-  
-  // delete by id
-  while( ! ids_to_delete.data.empty()){
-    graphics_objects.data.erase( ids_to_delete.data.front() );
-    ids_to_delete.data.pop();
-  }
-}
-
-
-
-//------------------------------------------------------------------------------
 void Window::Wrapper::render_gobjects(){
-  std::lock_guard lg(graphics_objects.lock);
-    
-  for(auto &obj : graphics_objects.data)
+  for(auto &obj : graphics_objects)
     obj.second->render(shader_program);
 }
 
@@ -475,41 +419,54 @@ Window::Manager& Window::Manager::get_instance(){
 
 
 //------------------------------------------------------------------------------
-id Window::Manager::add_win(){
-  std::lock_guard lg(windows.lock);
-  windows.data.insert({
-    next_win_id,
-    std::make_shared< Wrapper >(next_win_id)
-  });
-  
-  return next_win_id++;
-}
-
-
-
-//------------------------------------------------------------------------------
-void Window::Manager::close_win(id id){
-  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
-  windows.data.at(id)->should_close.store(true);
-}
-
-
-
-//------------------------------------------------------------------------------
 bool Window::Manager::win_got_closed(id id){
-  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
-  return ( ! windows.data.contains(id));
+  return got_closed.at(id);
 }
 
 
 
 //------------------------------------------------------------------------------
 std::size_t Window::Manager::get_count(){
-  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
-  return windows.data.size();
+  return window_count;
 }
 
 
+
+//------------------------------------------------------------------------------
+void Window::Manager::push_msg_from_API(const Thread_Message& msg){
+  std::lock_guard lock(get_instance().messages_from_API.mutex);
+  get_instance().messages_from_API.data.push( msg );
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::process_msgs_to_API(){
+  std::lock_guard lock(get_instance().messages_to_API.mutex);
+  
+  while( ! get_instance().messages_to_API.data.empty()){
+    auto ret = get_instance().messages_to_API.data.front();
+    get_instance().messages_to_API.data.pop();
+  }
+}
+
+
+
+//------------------------------------------------------------------------------
+id Window::Manager::get_next_win_id(){
+  get_instance().next_win_id++;
+  
+  get_instance().got_closed.insert( {get_instance().next_win_id, false} );
+  
+  return get_instance().next_win_id;
+}
+
+
+
+//------------------------------------------------------------------------------
+id Window::Manager::get_next_gobj_id(){
+  return get_instance().next_gobj_id++;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Manager private
@@ -524,14 +481,10 @@ Window::Manager::Manager(){
 
 //------------------------------------------------------------------------------
 Window::Manager::~Manager(){
-  
   stop_thread.store(true);
   graphics_thread.join();
   
-  {
-    std::lock_guard lg(windows.lock);
-    windows.data.clear();
-  }
+  windows.clear();
   
   glfwTerminate();
 }
@@ -559,8 +512,8 @@ void Window::Manager::thread_func(){
   
   while( ! stop_thread.load() ){
     glfwPollEvents();
+    process_msgs_from_API();
     update_windows();
-    remove_closed_windows();
     wait_until_next_frame();
   }
 }
@@ -569,23 +522,8 @@ void Window::Manager::thread_func(){
 
 //------------------------------------------------------------------------------
 void Window::Manager::update_windows(){
-  std::shared_lock sl(Manager::get_instance().windows.lock, std::defer_lock);
-  for(auto &w : windows.data)
+  for(auto &w : windows)
     w.second->update();
-}
-
-
-
-//------------------------------------------------------------------------------
-void Window::Manager::remove_closed_windows(){
-  std::lock_guard lg(windows.lock);
-  std::erase_if(
-    windows.data,   // container
-    [](const auto& item){
-      auto const& [key, value] = item;
-      return value->should_close.load();   // condition for removal
-    }
-  );
 }
 
 
@@ -605,6 +543,238 @@ void Window::Manager::wait_until_next_frame(){
     wait_time = time_per_frame - time_elapsed;
   
   std::this_thread::sleep_for( microseconds(wait_time) );
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::push_msg_to_API(const Thread_Message& msg){
+  std::lock_guard lock(get_instance().messages_to_API.mutex);
+  get_instance().messages_to_API.data.push( msg );
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::process_msgs_from_API(){
+  std::lock_guard lock(get_instance().messages_from_API.mutex);
+  
+  while( ! get_instance().messages_from_API.data.empty()){
+    auto msg = get_instance().messages_from_API.data.front();
+    process_msg(msg);
+    get_instance().messages_from_API.data.pop();
+  }
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::process_msg(Thread_Message& msg){
+  switch(msg.type){
+    case Thread_Message::open_win:{
+      auto param = std::get< std::tuple< id, std::string > >(msg.parameters);
+      add_win(std::get<0>(param), std::get<1>(param));
+      break;
+    }
+    case Thread_Message::close_win:{
+      auto param = std::get< id >(msg.parameters);
+      close_win(param);
+      break;
+    }
+    case Thread_Message::got_closed:{
+      auto param = std::get< id >(msg.parameters);
+      got_closed.at(param) = true;
+      break;
+    }
+    case Thread_Message::count_win:{
+      auto param = std::get< std::size_t >(msg.parameters);
+      window_count = param;
+      break;
+    }
+    case Thread_Message::add_gobject:{
+      auto param = std::get< std::tuple< id, id, std::shared_ptr< GShape > > >(msg.parameters);
+      add_new_gobject(std::get<0>(param), std::get<1>(param), std::get<2>(param));
+      break;
+    }
+    case Thread_Message::remove_gobject:{
+      auto param = std::get< std::tuple< id, id > >(msg.parameters);
+      remove_gobject(std::get<0>(param), std::get<1>(param));
+      break;
+    }
+    case Thread_Message::clear_gobjects:{
+      auto param = std::get< id >(msg.parameters);
+      clear_gobjects(param);
+      break;
+    }
+    case Thread_Message::set_gobj_position:{
+      auto param = std::get< std::tuple<id, id, glm::vec3 > >(msg.parameters);
+      set_gobj_position(std::get<0>(param), std::get<1>(param), std::get<2>(param));
+      break;
+    }
+    case Thread_Message::set_gobj_rotation:{
+      auto param = std::get< std::tuple<id, id, float > >(msg.parameters);
+      set_gobj_rotation(std::get<0>(param), std::get<1>(param), std::get<2>(param));
+      break;
+    }
+    case Thread_Message::set_camera_position:{
+      auto param = std::get< std::tuple<id, glm::vec3 > >(msg.parameters);
+      set_camera_position(std::get<0>(param), std::get<1>(param));
+      break;
+    }
+    case Thread_Message::set_camera_zoom:{
+      auto param = std::get< std::tuple<id, float > >(msg.parameters);
+      set_camera_zoom(std::get<0>(param), std::get<1>(param));
+      break;
+    }
+    case Thread_Message::mod_camera_zoom:{
+      auto param = std::get< std::tuple<id, float > >(msg.parameters);
+      mod_camera_zoom(std::get<0>(param), std::get<1>(param));
+      break;
+    }
+    case Thread_Message::set_allow_zoom:{
+      auto param = std::get< std::tuple<id, bool > >(msg.parameters);
+      set_allow_zoom(std::get<0>(param), std::get<1>(param));
+      break;
+    }
+    case Thread_Message::set_allow_camera_movement:{
+      auto param = std::get< std::tuple<id, bool > >(msg.parameters);
+      set_allow_camera_movement(std::get<0>(param), std::get<1>(param));
+      break;
+    }
+    case Thread_Message::set_background_colour:{
+      auto param = std::get< std::tuple<id, glm::vec3 > >(msg.parameters);
+      set_background_colour(std::get<0>(param), std::get<1>(param));
+      break;
+    }
+    case Thread_Message::set_window_name:{
+      auto param = std::get< std::tuple<id, std::string > >(msg.parameters);
+      set_window_name(std::get<0>(param), std::get<1>(param));
+      break;
+    }
+  }
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::add_win(id win_id, const std::string& name){
+  windows.insert({
+    win_id,
+    std::make_shared< Wrapper >(win_id)
+  });
+  
+  Thread_Message msg = {Thread_Message::count_win, windows.size()};
+  push_msg_to_API(msg);
+  msg = {Thread_Message::count_win, std::make_tuple(win_id, name) };
+  push_msg_from_API(msg);
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::close_win(id id){
+  windows.erase(id);
+  
+  Thread_Message msg = {Thread_Message::count_win, windows.size()};
+  push_msg_to_API(msg);
+  msg = {Thread_Message::got_closed, id};
+  push_msg_to_API(msg);
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::add_new_gobject(id win_id, id gobj_id, std::shared_ptr< GShape > obj){
+  auto win = windows.at(win_id);
+  win->graphics_objects.insert( {gobj_id, obj} );
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::remove_gobject(id win_id, id gobj_id){
+  auto win = windows.at(win_id);
+  win->graphics_objects.erase(gobj_id);
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::clear_gobjects(id win_id){
+  auto win = windows.at(win_id);
+  win->graphics_objects.clear();
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::set_gobj_position(id win_id, id gobj_id, glm::vec3 position){
+  auto win = windows.at(win_id);
+  win->graphics_objects.at(gobj_id)->set_position(position);
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::set_gobj_rotation(id win_id, id gobj_id, float rotation){
+  auto win = windows.at(win_id);
+  win->graphics_objects.at(gobj_id)->set_rotation(rotation);
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::set_camera_position(id win_id, glm::vec3 pos){
+  auto win = windows.at(win_id);
+  win->camera.set_position(pos);
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::set_camera_zoom(id win_id, float zoom){
+  auto win = windows.at(win_id);
+  win->camera.set_zoom(zoom);
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::mod_camera_zoom(id win_id, float zoom_diff){
+  auto win = windows.at(win_id);
+  win->camera.mod_zoom(zoom_diff);
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::set_allow_zoom(id win_id, bool b){
+  auto win = windows.at(win_id);
+  win->allow_zoom = b;
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::set_allow_camera_movement(id win_id, bool b){
+  auto win = windows.at(win_id);
+  win->allow_camera_movement = b;
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::set_background_colour(id win_id, glm::vec3 colour){
+  auto win = windows.at(win_id);
+  win->background_colour = colour;
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::set_window_name(id win_id, const std::string& name){
+  auto win = windows.at(win_id);
+  win->update_name(name);
 }
 
 

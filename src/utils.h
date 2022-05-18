@@ -27,36 +27,55 @@ SOFTWARE.
 
 #pragma once
 
+#include <string>
 #include <memory>
-
-///#define GLFW_INCLUDE_NONE     // not needed/working on Ubuntu, etc.
-// #include <glad/gl.h>     // not needed/working on Ubuntu, etc.
-#include <GL/glew.h>
+#include <variant>
+#include <tuple>
 
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
-#include "shader_program.h"
+#include "graphics_object.h"
 
 
 
-class Camera{
-public:
-  Camera();
-  Camera(glm::vec3 position);
-  ~Camera();
-  void set_position(glm::vec3 pos);
-  void set_zoom(float zoom);
-  void mod_zoom(float zoom_diff);
-  void update(
-    std::shared_ptr< Shader_Program > shader_program,
-    float screen_width,
-    float screen_height
-  );
+typedef unsigned long long int id;
+typedef uint microsecs;
+
+
+
+struct Thread_Message{
+  // type
+  enum msg_type{
+    open_win,
+    close_win,
+    got_closed,
+    count_win,
+    add_gobject,
+    remove_gobject,
+    clear_gobjects,
+    set_gobj_position,
+    set_gobj_rotation,
+    set_camera_position,
+    set_camera_zoom,
+    mod_camera_zoom,
+    set_allow_zoom,
+    set_allow_camera_movement,
+    set_background_colour,
+    set_window_name
+  } type;
   
-private:
-  glm::vec3 position = {0.0f, 0.0f, 0.0f};
-  float zoom = 1;
-  bool is_ortho = true;
+  // parameters
+  std::variant<
+    id,
+    std::size_t,
+    std::string,
+    std::tuple<id, bool>,
+    std::tuple<id, float>,
+    std::tuple<id, id>,
+    std::tuple<id, glm::vec3>,
+    std::tuple<id, std::string>,
+    std::tuple<id, id, float>,
+    std::tuple<id, id, glm::vec3>,
+    std::tuple<id, id, std::shared_ptr< GShape > >
+  > parameters;
 };
