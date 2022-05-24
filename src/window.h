@@ -35,6 +35,7 @@ SOFTWARE.
 #include <unordered_map>
 #include <queue>
 #include <chrono>
+#include <optional>
 
 ///#define GLFW_INCLUDE_NONE     // not needed/working on Ubuntu, etc.
 // #include <glad/gl.h>     // not needed/working on Ubuntu, etc.
@@ -56,6 +57,7 @@ SOFTWARE.
 
 
 
+// used by API
 enum gobj_type{
   t_triangle,
   t_rectangle,
@@ -66,9 +68,7 @@ enum gobj_type{
 
 class Window{   // outer Window class exposes only the API
 public:
-  Window() = delete;   // Window itself is not to be used explicitely
-  ~Window() = delete;   // Window itself is not to be used explicitely
-  
+  // API
   static id open();
   static id open(const std::string& name);
   static void close(id win_id);
@@ -92,32 +92,40 @@ public:
   
   
 private:
+  Window() = delete;   // Window class acts as a static API
+  ~Window() = delete;   // Window class acts as a static API
+  
+  
+  
+  // thread communication
   typedef struct{
     std::queue< Thread_Message > data;
     std::mutex mutex;
   }thread_msg_queue;
   
+  
+  
 //------------------------------------------------------------------------------
-  // wrapper class (actual internal data)
+  // wrapper class (holds actual window)
   class Wrapper{
   public:
-    Wrapper(id w_id);
-    ~Wrapper();
-    void update();
-    void update_name(const std::string& name);
+    Wrapper(id w_id);   // graphics thread
+    ~Wrapper();   // graphics thread
+    void update();   // graphics thread
+    void update_name(const std::string& name);   // graphics thread
     
-    std::unordered_map< id, std::shared_ptr< GShape > > graphics_objects;
-    Camera camera;
-    bool allow_zoom = false;
-    bool allow_camera_movement = false;
-    glm::vec3 background_colour = {0.0f, 0.0f, 0.0f};
-    std::string window_name = "";
+    std::unordered_map< id, std::shared_ptr< GShape > > graphics_objects;   // graphics thread
+    Camera camera;   // graphics thread
+    bool allow_zoom = false;   // graphics thread
+    bool allow_camera_movement = false;   // graphics thread
+    glm::vec3 background_colour = {0.0f, 0.0f, 0.0f};   // graphics thread
+    std::string window_name = "";   // graphics thread (after initialization)
     
   private:
-    id w_id;
-    GLFWwindow* window;
-    int width, height;
-    std::shared_ptr< Shader_Program > shader_program;
+    id w_id;   // graphics thread (after initialization)
+    GLFWwindow* window;   // graphics thread (after initialization)
+    int width, height;   // graphics thread (after initialization)
+    std::shared_ptr< Shader_Program > shader_program;   // graphics thread (after initialization)
     
     void create_glfw_window();
     void load_gl_functions();
@@ -143,9 +151,12 @@ private:
     static void process_msgs_to_API();
     static id get_next_win_id();
     static id get_next_gobj_id();
+    static std::shared_ptr< GShape > new_gobject(gobj_type g_type, float size, glm::vec3 colour);
+    static std::shared_ptr< GShape > new_gobject(gobj_type g_type, glm::vec3 position, float size, glm::vec3 colour);
+    static std::shared_ptr< GShape > new_gobject(gobj_type g_type, glm::vec3 position, float rotation, float size, glm::vec3 colour);
     
-    thread_msg_queue messages_from_API;
-    thread_msg_queue messages_to_API;
+    thread_msg_queue messages_from_API;   // both threads
+    thread_msg_queue messages_to_API;   // both threads
     
   private:
     // Meyer's singleton
@@ -154,9 +165,9 @@ private:
     Manager(const Manager&) = delete;   // prevents creation of copies
     Manager& operator=(const Manager&) = delete;   // prevents creation of copies
     
-    // "actual" private members
     void init_glfw();
     void thread_func();   // graphics thread
+    void thread_loop();   // graphics thread
     void update_windows();   // graphics thread
     void wait_until_next_frame();   // graphics thread
     void push_msg_to_API(const Thread_Message& msg);   // graphics thread
@@ -176,6 +187,7 @@ private:
     void set_allow_camera_movement(id win_id, bool b);   // graphics thread
     void set_background_colour(id win_id, glm::vec3 colour);   // graphics thread
     void set_window_name(id win_id, const std::string& name);   // graphics thread
+    std::optional< std::shared_ptr< Wrapper > > safe_get_window(id win_id);   // graphics thread
 
     id next_win_id = 0;
     id next_gobj_id = 0;
@@ -187,12 +199,4 @@ private:
     std::unordered_map< id, bool > got_closed;
     std::unordered_map< id, std::shared_ptr< Wrapper > > windows;   // graphics thread
   };
-
-
-
-//------------------------------------------------------------------------------
-  // actual private functions of Window
-  static std::shared_ptr< GShape > new_gobject(gobj_type g_type, float size, glm::vec3 colour);
-  static std::shared_ptr< GShape > new_gobject(gobj_type g_type, glm::vec3 position, float size, glm::vec3 colour);
-  static std::shared_ptr< GShape > new_gobject(gobj_type g_type, glm::vec3 position, float rotation, float size, glm::vec3 colour);
 };

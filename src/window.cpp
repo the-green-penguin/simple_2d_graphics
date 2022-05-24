@@ -86,7 +86,7 @@ std::size_t Window::count(){
 
 //------------------------------------------------------------------------------
 id Window::add_gobject(id win_id, gobj_type g_type, float size, glm::vec3 colour){
-  std::shared_ptr< GShape > gobject = new_gobject(g_type, size, colour);
+  std::shared_ptr< GShape > gobject = Manager::new_gobject(g_type, size, colour);
   id gobj_id = Manager::get_next_gobj_id();
   
   Thread_Message msg = { Thread_Message::add_gobject, std::make_tuple(win_id, gobj_id, gobject) };
@@ -99,7 +99,7 @@ id Window::add_gobject(id win_id, gobj_type g_type, float size, glm::vec3 colour
 
 //------------------------------------------------------------------------------
 id Window::add_gobject(id win_id, gobj_type g_type, glm::vec3 position, float size, glm::vec3 colour){
-  std::shared_ptr< GShape > gobject = new_gobject(g_type, position, size, colour);
+  std::shared_ptr< GShape > gobject = Manager::new_gobject(g_type, position, size, colour);
   id gobj_id = Manager::get_next_gobj_id();
   
   Thread_Message msg = { Thread_Message::add_gobject, std::make_tuple(win_id, gobj_id, gobject) };
@@ -112,7 +112,7 @@ id Window::add_gobject(id win_id, gobj_type g_type, glm::vec3 position, float si
 
 //------------------------------------------------------------------------------
 id Window::add_gobject(id win_id, gobj_type g_type, glm::vec3 position, float rotation, float size, glm::vec3 colour){
-  std::shared_ptr< GShape > gobject = new_gobject(g_type, position, rotation, size, colour);
+  std::shared_ptr< GShape > gobject = Manager::new_gobject(g_type, position, rotation, size, colour);
   id gobj_id = Manager::get_next_gobj_id();
   
   Thread_Message msg = { Thread_Message::add_gobject, std::make_tuple(win_id, gobj_id, gobject) };
@@ -214,51 +214,6 @@ void Window::set_window_name(id win_id, const std::string& name){
 ////////////////////////////////////////////////////////////////////////////////
 // Window private
 ////////////////////////////////////////////////////////////////////////////////
-
-std::shared_ptr< GShape > Window::new_gobject(gobj_type g_type, float size, glm::vec3 colour){
-  std::shared_ptr< GShape > obj;
-  
-  switch(g_type){
-  case t_triangle:  obj = std::make_shared< GTriangle >(size, colour);   break;
-  case t_rectangle: obj = std::make_shared< GRect >(size, colour);   break;
-  case t_circle:    obj = std::make_shared< GCircle >(size, colour);   break;
-  default:          throw std::runtime_error("new_gobject(): Invalid GObject type!");
-  }
-  
-  return obj;
-}
-
-
-
-//------------------------------------------------------------------------------
-std::shared_ptr< GShape > Window::new_gobject(gobj_type g_type, glm::vec3 position, float size, glm::vec3 colour){
-  std::shared_ptr< GShape > obj;
-  
-  switch(g_type){
-  case t_triangle:  obj = std::make_shared< GTriangle >(position, size, colour);   break;
-  case t_rectangle: obj = std::make_shared< GRect >(position, size, colour);   break;
-  case t_circle:    obj = std::make_shared< GCircle >(position, size, colour);   break;
-  default:          throw std::runtime_error("new_gobject(): Invalid GObject type!");
-  }
-  
-  return obj;
-}
-
-
-
-//------------------------------------------------------------------------------
-std::shared_ptr< GShape > Window::new_gobject(gobj_type g_type, glm::vec3 position, float rotation, float size, glm::vec3 colour){
-  std::shared_ptr< GShape > obj;
-  
-  switch(g_type){
-  case t_triangle:  obj = std::make_shared< GTriangle >(position, rotation, size, colour);   break;
-  case t_rectangle: obj = std::make_shared< GRect >(position, rotation, size, colour);   break;
-  case t_circle:    obj = std::make_shared< GCircle >(position, rotation, size, colour);   break;
-  default:          throw std::runtime_error("new_gobject(): Invalid GObject type!");
-  }
-  
-  return obj;
-}
 
 
 
@@ -465,7 +420,6 @@ void Window::Manager::process_msgs_to_API(){
 //------------------------------------------------------------------------------
 id Window::Manager::get_next_win_id(){
   get_instance().next_win_id++;
-  
   get_instance().got_closed.insert( {get_instance().next_win_id, false} );
   
   return get_instance().next_win_id;
@@ -519,7 +473,19 @@ void Window::Manager::init_glfw(){
 
 //------------------------------------------------------------------------------
 void Window::Manager::thread_func(){
+  try{  thread_loop();  }
   
+  catch(std::exception& e){
+    std::string message = "Window::Manager: ";
+    message += e.what();
+    throw std::runtime_error( message );
+  }
+}
+
+
+
+//------------------------------------------------------------------------------
+void Window::Manager::thread_loop(){
   while( ! stop_thread.load() ){
     glfwPollEvents();
     process_msgs_from_API();
@@ -704,96 +670,164 @@ void Window::Manager::close_win(id id){
 
 //------------------------------------------------------------------------------
 void Window::Manager::add_new_gobject(id win_id, id gobj_id, std::shared_ptr< GShape > obj){
-  auto win = windows.at(win_id);
-  win->graphics_objects.insert( {gobj_id, obj} );
+  auto win = safe_get_window(win_id);
+  if( win.has_value() )
+    win.value()->graphics_objects.insert( {gobj_id, obj} );
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::Manager::remove_gobject(id win_id, id gobj_id){
-  auto win = windows.at(win_id);
-  win->graphics_objects.erase(gobj_id);
+  auto win = safe_get_window(win_id);
+  if( win.has_value() )
+    win.value()->graphics_objects.erase(gobj_id);
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::Manager::clear_gobjects(id win_id){
-  auto win = windows.at(win_id);
-  win->graphics_objects.clear();
+  auto win = safe_get_window(win_id);
+  if( win.has_value() )
+    win.value()->graphics_objects.clear();
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::Manager::set_gobj_position(id win_id, id gobj_id, glm::vec3 position){
-  auto win = windows.at(win_id);
-  win->graphics_objects.at(gobj_id)->set_position(position);
+  auto win = safe_get_window(win_id);
+  if( win.has_value() )
+    win.value()->graphics_objects.at(gobj_id)->set_position(position);
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::Manager::set_gobj_rotation(id win_id, id gobj_id, float rotation){
-  auto win = windows.at(win_id);
-  win->graphics_objects.at(gobj_id)->set_rotation(rotation);
+  auto win = safe_get_window(win_id);
+  if( win.has_value() )
+    win.value()->graphics_objects.at(gobj_id)->set_rotation(rotation);
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::Manager::set_camera_position(id win_id, glm::vec3 pos){
-  auto win = windows.at(win_id);
-  win->camera.set_position(pos);
+  auto win = safe_get_window(win_id);
+  if( win.has_value() )
+    win.value()->camera.set_position(pos);
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::Manager::set_camera_zoom(id win_id, float zoom){
-  auto win = windows.at(win_id);
-  win->camera.set_zoom(zoom);
+  auto win = safe_get_window(win_id);
+  if( win.has_value() )
+    win.value()->camera.set_zoom(zoom);
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::Manager::mod_camera_zoom(id win_id, float zoom_diff){
-  auto win = windows.at(win_id);
-  win->camera.mod_zoom(zoom_diff);
+  auto win = safe_get_window(win_id);
+  if( win.has_value() )
+    win.value()->camera.mod_zoom(zoom_diff);
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::Manager::set_allow_zoom(id win_id, bool b){
-  auto win = windows.at(win_id);
-  win->allow_zoom = b;
+  auto win = safe_get_window(win_id);
+  if( win.has_value() )
+    win.value()->allow_zoom = b;
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::Manager::set_allow_camera_movement(id win_id, bool b){
-  auto win = windows.at(win_id);
-  win->allow_camera_movement = b;
+  auto win = safe_get_window(win_id);
+  if( win.has_value() )
+    win.value()->allow_camera_movement = b;
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::Manager::set_background_colour(id win_id, glm::vec3 colour){
-  auto win = windows.at(win_id);
-  win->background_colour = colour;
+  auto win = safe_get_window(win_id);
+  if( win.has_value() )
+    win.value()->background_colour = colour;
 }
 
 
 
 //------------------------------------------------------------------------------
 void Window::Manager::set_window_name(id win_id, const std::string& name){
-  auto win = windows.at(win_id);
-  win->update_name(name);
+  auto win = safe_get_window(win_id);
+  if( win.has_value() )
+    win.value()->update_name(name);
+}
+
+
+
+//------------------------------------------------------------------------------
+std::optional< std::shared_ptr< Window::Wrapper > > Window::Manager::safe_get_window(id win_id){
+  try{  return windows.at(win_id);  }
+  catch(std::out_of_range& e){  return {};  }   // window not found -> return empty
+}
+
+
+
+//------------------------------------------------------------------------------
+std::shared_ptr< GShape > Window::Manager::new_gobject(gobj_type g_type, float size, glm::vec3 colour){
+  std::shared_ptr< GShape > obj;
+  
+  switch(g_type){
+  case t_triangle:  obj = std::make_shared< GTriangle >(size, colour);   break;
+  case t_rectangle: obj = std::make_shared< GRect >(size, colour);   break;
+  case t_circle:    obj = std::make_shared< GCircle >(size, colour);   break;
+  default:          throw std::runtime_error("new_gobject(): Invalid GObject type!");
+  }
+  
+  return obj;
+}
+
+
+
+//------------------------------------------------------------------------------
+std::shared_ptr< GShape > Window::Manager::new_gobject(gobj_type g_type, glm::vec3 position, float size, glm::vec3 colour){
+  std::shared_ptr< GShape > obj;
+  
+  switch(g_type){
+  case t_triangle:  obj = std::make_shared< GTriangle >(position, size, colour);   break;
+  case t_rectangle: obj = std::make_shared< GRect >(position, size, colour);   break;
+  case t_circle:    obj = std::make_shared< GCircle >(position, size, colour);   break;
+  default:          throw std::runtime_error("new_gobject(): Invalid GObject type!");
+  }
+  
+  return obj;
+}
+
+
+
+//------------------------------------------------------------------------------
+std::shared_ptr< GShape > Window::Manager::new_gobject(gobj_type g_type, glm::vec3 position, float rotation, float size, glm::vec3 colour){
+  std::shared_ptr< GShape > obj;
+  
+  switch(g_type){
+  case t_triangle:  obj = std::make_shared< GTriangle >(position, rotation, size, colour);   break;
+  case t_rectangle: obj = std::make_shared< GRect >(position, rotation, size, colour);   break;
+  case t_circle:    obj = std::make_shared< GCircle >(position, rotation, size, colour);   break;
+  default:          throw std::runtime_error("new_gobject(): Invalid GObject type!");
+  }
+  
+  return obj;
 }
 
 
