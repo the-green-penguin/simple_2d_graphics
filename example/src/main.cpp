@@ -59,6 +59,7 @@ int main(int argc, char* argv[]){
 void test(){
 	windows.push_back( Window::open("Test") );
 	windows.push_back( Window::open() );
+	windows.push_back( Window::open() );
 	
 	create_gobjects();
 	loop();
@@ -108,6 +109,16 @@ void create_gobjects(){
 		{1.0f, 0.75f, 0.25f}
 	);
 	objects.push_back(obj);
+	
+	// third window
+	Window::add_gobject(
+		windows[2],
+		t_circle,
+		{100.0f, 100.0f, 0.0f},
+		0.0f,
+		10.0f,
+		{1.0f, 0.25f, 0.25f}
+	);
 }
 
 

@@ -307,8 +307,8 @@ void Window::Wrapper::enable_gl_debugging(){
 
 //------------------------------------------------------------------------------
 void Window::Wrapper::setup_shader_program(){
-  std::vector<std::string> shader_sources = {"src/shaders/simple_2d.frag", "src/shaders/simple_2d.vert"};
-  this->shader_program = std::make_shared<Shader_Program>(shader_sources);
+  ///std::vector<std::string> shader_sources = {"src/shaders/simple_2d.frag", "src/shaders/simple_2d.vert"};
+  this->shader_program = std::make_shared<Shader_Program>();
 }
 
 

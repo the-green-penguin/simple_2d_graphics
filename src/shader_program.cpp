@@ -38,6 +38,18 @@ SOFTWARE.
 // public
 ////////////////////////////////////////////////////////////////////////////////
 
+Shader_Program::Shader_Program(){
+  shader_program = glCreateProgram();
+  
+  compile_shader(GL_VERTEX_SHADER, default_vert_shader);
+  compile_shader(GL_FRAGMENT_SHADER, default_frag_shader);
+    
+  compile_shader_program();
+}
+
+
+
+//------------------------------------------------------------------------------
 Shader_Program::Shader_Program(const std::vector< std::string >& file_names){
   shader_program = glCreateProgram();
   for(const auto &fn : file_names)

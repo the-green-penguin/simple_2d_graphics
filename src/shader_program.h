@@ -41,6 +41,7 @@ SOFTWARE.
 
 class Shader_Program{
 public:
+  Shader_Program();
   Shader_Program(const std::vector< std::string >& file_names);
   ~Shader_Program();
   void use();
@@ -80,4 +81,32 @@ private:
   void compile_shader_program();
   GLenum get_shader_type(const std::string& file_name);
   void compile_shader(GLenum shader_type, const std::string& shader_source);
+  
+  const std::string default_vert_shader = 
+    "#version 450 core   // has to match OpenGL version used (?)\n"
+    "\n"
+    "layout (location = 0) in vec3 in_pos;   // 'input_position' = x, y, z of vertex\n"
+    "layout (location = 1) in vec3 in_color;   // 'input_colour' = r, g, b of vertex\n"
+    "\n"
+    "out vec4 vertex_color;\n"
+    "\n"
+    "uniform mat4 model;\n"
+    "uniform mat4 view;\n"
+    "uniform mat4 projection;\n"
+    "\n"
+    "void main(){\n"
+    "  gl_Position = projection * view * model * vec4(in_pos, 1.0f);   // gl_Position = pre-defined variable for output (x, y, z, w)\n"
+    "  vertex_color = vec4(in_color, 1.0f);\n"
+    "}";
+    
+  const std::string default_frag_shader = 
+    "#version 450 core\n"
+    "\n"
+    "uniform vec4 uni_color;\n"
+    "in vec4 vertex_color;\n"
+    "out vec4 frag_color;   // user-defined output variable (r, g, b, a)\n"
+    "\n"
+    "void main(){\n"
+      "frag_color = uni_color + vertex_color;   // orange\n"
+    "}";
 };
