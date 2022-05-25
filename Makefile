@@ -50,6 +50,7 @@ FLAGS = $(INC) $(LIB) $(CFLAGS) $(CPP_V)
 # actual compilation
 # create static library
 all: $(OBJ)
+	mkdir bin -p
 	ar -rvs $(AR) $(OBJ)
 
 # create object files

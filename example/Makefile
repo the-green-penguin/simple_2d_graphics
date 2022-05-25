@@ -27,6 +27,7 @@ DEPENDENCIES = -Wl,-Bdynamic -lGL -lglfw -lGLEW
 CFLAGS = -std=c++2a -fPIC -pthread -O3
 
 all: lib-make
+	mkdir bin -p
 	g++ src/main.cpp -o bin/example.exe $(2D_LIB) $(DEPENDENCIES) $(CFLAGS)
 
 lib-make:
